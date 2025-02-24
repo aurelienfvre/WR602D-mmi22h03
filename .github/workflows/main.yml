@@ -1,0 +1,86 @@
+name: Symfony + PHP Quality Check
+on:
+  push:
+    branches: [ "develop", "feature/*" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+
+permissions:
+  contents: write  # Nécessaire pour pouvoir committer les corrections
+
+jobs:
+  symfony-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, intl, pdo_sqlite
+        coverage: xdebug
+
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Récupère tout l'historique pour les PR
+
+    - name: Copy .env.test.local
+      run: php -r "file_exists('.env.test.local') || copy('.env.test', '.env.test'); file_exists('.env.local') || copy('.env', '.env.local');"
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Create Database
+      run: |
+        mkdir -p data
+        touch data/database.sqlite
+
+    # Auto-correction du style de code
+    - name: Auto-fix code style
+      if: github.event_name == 'pull_request'
+      run: |
+        vendor/bin/phpcbf --standard=PSR2 src/ || true
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git diff --quiet || (git add src/ && git commit -m "style: auto-fix code style issues" && git push)
+
+    # Analyser et faire échouer si des problèmes persistent
+    - name: Run PHP_CodeSniffer
+      run: vendor/bin/phpcs --standard=PSR2 src/
+
+    - name: Run PHPUnit
+      env:
+        DATABASE_URL: sqlite:///%kernel.project_dir%/data/database.sqlite
+      run: vendor/bin/phpunit tests/
+
+    - name: Run PHPStan
+      run: vendor/bin/phpstan analyze --level=5 src/ || true
+      # niveau 5 pour commencer, peut être augmenté progressivement
+
+    - name: Run PHPMD
+      run: vendor/bin/phpmd src/ text cleancode,codesize,controversial,design
+
+  deploy-to-main:
+    needs: symfony-tests
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.ref == 'develop'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: develop
+        fetch-depth: 0
+        
+    - name: Merge develop into main
+      run: |
+        git config --global user.name 'GitHub Actions'
+        git config --global user.email 'actions@github.com'
+        git checkout main
+        git merge --no-ff develop -m "chore: merge develop into main after successful tests"
+        git push origin main
