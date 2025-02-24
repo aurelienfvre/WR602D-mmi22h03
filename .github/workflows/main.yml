@@ -4,6 +4,7 @@ on:
     branches: [ "develop", "feature/*" ]
   pull_request:
     branches: [ "develop", "main" ]
+  workflow_dispatch:  # Permet le déclenchement manuel du workflow
 
 permissions:
   contents: write  # Nécessaire pour pouvoir committer les corrections
