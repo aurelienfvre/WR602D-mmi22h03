@@ -23,9 +23,6 @@ jobs:
         with:
           fetch-depth: 0  # Récupérer tout l'historique pour les analyses de qualité
 
-      - name: Validate composer.json and composer.lock
-         run: |
-
       - name: Cache Composer packages
         id: composer-cache
         uses: actions/cache@v3
