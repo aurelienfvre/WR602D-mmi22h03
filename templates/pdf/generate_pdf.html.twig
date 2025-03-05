@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Générer un PDF{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Générer un PDF à partir d'une URL</h2>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'target': '_blank', 'data-turbo': 'false'}}) }}
+                            <div class="form-group">
+                                {{ form_label(form.url) }}
+                                {{ form_widget(form.url, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.url) }}
+                            </div>
+                            <div class="mt-3">
+                                {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary'}}) }}
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

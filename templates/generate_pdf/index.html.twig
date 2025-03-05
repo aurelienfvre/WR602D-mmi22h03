@@ -1,0 +1,13 @@
+// generate_pdf.twig
+{% extends 'base.html.twig' %}
+
+{% block title %}Générer un PDF{% endblock %}
+
+{% block body %}
+    <h1>Générer un PDF depuis une URL</h1>
+
+    {{ form_start(form, { 'attr': { 'data-turbo': "false" } }) }}
+    {{ form_row(form.url) }}
+    {{ form_row(form.submit) }}
+    {{ form_end(form) }}
+{% endblock %}
