@@ -38,7 +38,8 @@ class GotenbergService
             unlink($tmpFile);
 
             if ($response->getStatusCode() !== 200) {
-                return new Response("Erreur lors de la génération du PDF : " . $response->getContent(false), $response->getStatusCode());
+                return new Response("Erreur lors de la génération du PDF : " . 
+                $response->getContent(false), $response->getStatusCode());
             }
 
             return new StreamedResponse(function () use ($response) {
