@@ -13,15 +13,15 @@ jobs:
   quality-checks:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Récupérer tout l'historique pour les analyses de qualité
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite
           coverage: xdebug
-
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Récupérer tout l'historique pour les analyses de qualité
 
       - name: Cache Composer packages
         id: composer-cache
@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist || composer update --no-interaction --no-progress --prefer-dist
           # Installation des outils de qualité de code si non présents dans le composer.json
           composer require --dev phpstan/phpstan phpmd/phpmd squizlabs/php_codesniffer --no-interaction --no-update || true
           composer update --no-interaction --no-progress --prefer-dist
