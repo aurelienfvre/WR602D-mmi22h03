@@ -17,8 +17,7 @@ class SubscriptionController extends AbstractController
         Request $request,
         SubscriptionRepository $subscriptionRepository,
         EntityManagerInterface $entityManager
-    ): Response
-    {
+    ): Response {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         $user = $this->getUser();
