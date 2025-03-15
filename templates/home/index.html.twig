@@ -1,0 +1,1309 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PDFPro - Convertissez vos pages web en PDF{% endblock %}
+
+{% block body %}
+{% if app.user %}
+    <!-- User Dashboard - Modern Bento UI Design -->
+    <div class="max-w-7xl mx-auto pb-12">
+        <!-- Hero Header with Gradient -->
+        <div class="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl mb-8 shadow-md">
+            <!-- Background patterns -->
+            <div class="absolute inset-0 overflow-hidden opacity-10">
+                <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white rounded-full opacity-40"></div>
+                <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white rounded-full opacity-40"></div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-white rounded-full opacity-10"></div>
+            </div>
+            
+            <div class="relative z-10 p-8">
+                <!-- Welcome Header -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+                    <div class="text-white">
+                        <h1 class="text-3xl md:text-4xl font-bold">Bonjour, {{ app.user.firstname }} 👋</h1>
+                        <p class="text-white/80 mt-2">Voici votre espace PDFPro pour gérer et créer vos documents PDF.</p>
+                    </div>
+                    
+                    <div>
+                        <a href="{{ path('pdf_generate') }}" class="inline-flex items-center justify-center px-6 py-3 font-medium rounded-xl bg-white text-primary-700 hover:bg-primary-50 shadow-lg transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Nouveau PDF
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards Row -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- PDFs créés -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-4 h-full">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-white/70">PDFs Créés</p>
+                                <p class="text-2xl font-bold text-white">{{ app.user.files|length }}</p>
+                                <a href="{{ path('history') }}" class="text-xs font-medium text-white/70 hover:text-white flex items-center mt-1">
+                                    Historique 
+                                    <svg class="ml-1 w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- PDFs restants -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-4 h-full">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-white/70">PDFs Restants</p>
+                                <p class="text-2xl font-bold text-white">
+                                    {% if app.user.subscription %}
+                                        {{ app.user.subscription.maxPdf - app.user.files|length }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </p>
+                                <p class="text-xs text-white/70 mt-1">sur {{ app.user.subscription ? app.user.subscription.maxPdf : 0 }} disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Abonnement actuel -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-4 h-full">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-white/70">Abonnement</p>
+                                <p class="text-xl font-bold text-white truncate max-w-[140px]">
+                                    {% if app.user.subscription %}
+                                        {{ app.user.subscription.name }}
+                                    {% else %}
+                                        <span class="text-amber-300">Aucun</span>
+                                    {% endif %}
+                                </p>
+                                <a href="{{ path('subscription_change') }}" class="text-xs font-medium text-white/70 hover:text-white flex items-center mt-1">
+                                    {% if app.user.subscription %}Modifier{% else %}Sélectionner{% endif %}
+                                    <svg class="ml-1 w-3 h-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Date actuelle -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-4 h-full">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-white/70">Aujourd'hui</p>
+                                <p class="text-xl font-bold text-white">{{ "now"|date("d/m/Y") }}</p>
+                                <p class="text-xs text-white/70 mt-1">{{ "now"|date("l, d F Y") }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Bento Grid -->
+        <div class="grid grid-cols-12 gap-6">
+            <!-- Left Column (8/12) -->
+            <div class="col-span-12 lg:col-span-8 space-y-6">
+                <!-- Action Cards Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-dark-100/10 p-6 h-full flex flex-col">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-dark-900">Convertir une URL</h3>
+                        </div>
+                        <p class="text-dark-600 text-sm mb-6 flex-grow">Transformez n'importe quelle page web en PDF de qualité professionnelle en quelques secondes.</p>
+                        <a href="{{ path('pdf_generate') }}" class="inline-flex items-center justify-center px-5 py-2.5 font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Créer un PDF
+                        </a>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-dark-100/10 p-6 h-full flex flex-col">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-dark-900">Gérer les fichiers</h3>
+                        </div>
+                        <p class="text-dark-600 text-sm mb-6 flex-grow">Accédez à votre bibliothèque de PDFs et gérez tous vos documents générés.</p>
+                        <a href="{{ path('history') }}" class="inline-flex items-center justify-center px-5 py-2.5 font-medium rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all">
+                            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd" />
+                                <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
+                            </svg>
+                            Voir la bibliothèque
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Recent Files Section -->
+                <div class="bg-white rounded-2xl shadow-sm border border-dark-100/10 overflow-hidden">
+                    <div class="p-6 border-b border-dark-100/10">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-xl font-bold text-dark-900 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-primary-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                </svg>
+                                Documents récents
+                            </h2>
+                            {% if app.user.files|length > 0 %}
+                                <a href="{{ path('history') }}" class="flex items-center text-sm font-medium text-primary-600 hover:text-primary-700">
+                                    Voir tous
+                                    <svg class="ml-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        {% if app.user.files|length > 0 %}
+                            <div class="divide-y divide-dark-100/10">
+                                {% for file in app.user.files|slice(0, 4) %}
+                                    <div class="py-4 {% if not loop.first %}pt-4{% endif %} {% if not loop.last %}pb-4{% endif %}">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-4 flex-1 min-w-0">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-sm font-semibold text-dark-900 truncate mr-4">{{ file.name }}</p>
+                                                    <p class="text-xs text-dark-500 whitespace-nowrap">{{ file.createdAt|date('d/m/Y H:i') }}</p>
+                                                </div>
+                                                <div class="flex items-center mt-2 space-x-2">
+                                                    <a href="#" class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-lg bg-white border border-dark-200 text-dark-700 hover:bg-dark-50 transition-colors">
+                                                        <svg class="mr-1 h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        Voir
+                                                    </a>
+                                                    <a href="#" class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-lg bg-primary-50 border border-primary-100 text-primary-700 hover:bg-primary-100 transition-colors">
+                                                        <svg class="mr-1 h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        Télécharger
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-12 bg-dark-50/30 rounded-xl border border-dark-100/20">
+                                <div class="bg-white w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 shadow-sm">
+                                    <svg class="h-8 w-8 text-dark-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-semibold text-dark-900 mb-2">Aucun fichier PDF</h3>
+                                <p class="text-sm text-dark-500 max-w-sm mx-auto mb-6">Vous n'avez pas encore généré de PDF. Commencez dès maintenant pour créer votre premier document.</p>
+                                <a href="{{ path('pdf_generate') }}" class="inline-flex items-center justify-center px-5 py-2.5 font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    Créer mon premier PDF
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column (4/12) -->
+            <div class="col-span-12 lg:col-span-4 space-y-6">
+                <!-- Subscription Status -->
+                <div class="bg-white rounded-2xl shadow-sm border border-dark-100/10 overflow-hidden">
+                    <div class="p-6 border-b border-dark-100/10">
+                        <h2 class="flex items-center text-xl font-bold text-dark-900">
+                            <svg class="w-5 h-5 mr-2 text-primary-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                            </svg>
+                            Mon abonnement
+                        </h2>
+                    </div>
+                    
+                    <div class="p-6">
+                        {% if app.user.subscription %}
+                            <div class="text-center mb-6">
+                                <div class="relative inline-flex items-center justify-center mb-4">
+                                    <div class="absolute inset-0 bg-primary-100 rounded-full opacity-30"></div>
+                                    <div class="relative z-10 w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-xl font-bold text-dark-900 mb-1">{{ app.user.subscription.name }}</h3>
+                                <p class="text-dark-500 text-sm">
+                                    {% if app.user.subscription.specialPrice != null and app.user.subscription.specialPriceFrom <= 'now'|date('Y-m-d') and app.user.subscription.specialPriceTo >= 'now'|date('Y-m-d') %}
+                                        {{ app.user.subscription.specialPrice }}€ <span class="line-through text-xs">{{ app.user.subscription.price }}€</span> / mois
+                                    {% else %}
+                                        {{ app.user.subscription.price }}€ / mois
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="bg-dark-50 rounded-xl p-4 mb-6 border border-dark-100/20">
+                                <div class="flex justify-between items-center text-sm mb-2">
+                                    <span class="font-medium text-dark-700">Utilisation PDFs</span>
+                                    <span class="text-dark-900 font-semibold">{{ app.user.files|length }} / {{ app.user.subscription.maxPdf }}</span>
+                                </div>
+                                <div class="w-full h-2 bg-dark-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary-600 rounded-full" style="width: {{ (app.user.files|length / app.user.subscription.maxPdf * 100)|round }}%"></div>
+                                </div>
+                                <p class="text-xs text-dark-500 mt-2">
+                                    {{ app.user.subscription.maxPdf - app.user.files|length }} PDFs restants dans votre forfait
+                                </p>
+                            </div>
+                        {% else %}
+                            <div class="bg-amber-50 rounded-xl p-4 mb-6 border border-amber-200/40">
+                                <div class="flex gap-3">
+                                    <svg class="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    <div>
+                                        <h3 class="font-medium text-amber-800 mb-1">Aucun abonnement actif</h3>
+                                        <p class="text-sm text-amber-700">Vous devez sélectionner un abonnement pour générer des PDFs.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <a href="{{ path('subscription_change') }}" class="flex items-center justify-center w-full px-4 py-2.5 font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition-all">
+                            {% if app.user.subscription %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                                Gérer mon abonnement
+                            {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                                Choisir un abonnement
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Tips Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-dark-100/10 overflow-hidden">
+                    <div class="p-6 border-b border-dark-100/10">
+                        <h3 class="flex items-center text-xl font-bold text-dark-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                            </svg>
+                            Conseils d'utilisation
+                        </h3>
+                    </div>
+                    
+                    <div class="p-6">
+                        <ul class="space-y-3">
+                            <li class="flex gap-3 bg-primary-50 rounded-xl p-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-primary-800">Utilisez des URLs complètes (commençant par http:// ou https://)</p>
+                            </li>
+                            <li class="flex gap-3 bg-primary-50 rounded-xl p-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-primary-800">Attendez que la page se charge complètement avant de convertir</p>
+                            </li>
+                            <li class="flex gap-3 bg-primary-50 rounded-xl p-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm text-primary-800">Les pages avec authentification peuvent ne pas s'afficher correctement</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+
+        <!-- Landing Page -->
+        <div class="space-y-20">
+            <!-- Hero section -->
+            <div class="relative py-8">
+                <div class="max-w-3xl mx-auto text-center">
+                    <div class="mb-6 inline-flex items-center rounded-full bg-primary-100 px-4 py-2">
+                        <span class="text-xs font-medium text-primary-800">Transformez vos pages web en PDF</span>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-bold text-dark-900 leading-tight mb-6">
+                        Convertissez n'importe quelle URL en PDF <span class="text-primary-600">en quelques secondes</span>
+                    </h1>
+                    <p class="text-xl text-dark-600 mb-8 max-w-3xl mx-auto">
+                        PDFPro vous permet de générer des PDF de qualité professionnelle à partir de n'importe quelle page web, le tout en un seul clic.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4 mt-10">
+                        <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center px-8 py-4 font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-200 ease-in-out text-base">
+                            Essayer gratuitement
+                        </a>
+                        <a href="#tarifs" class="inline-flex items-center justify-center px-8 py-4 font-medium rounded-xl bg-white border border-dark-200 text-dark-700 hover:bg-dark-50 hover:border-dark-300 hover:shadow-lg transition-all duration-200 ease-in-out text-base">
+                            Voir nos tarifs
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Interactive Dashboard Preview -->
+                <div class="relative mt-16 max-w-5xl mx-auto" x-data="{ isActive: false, selectedTab: 'dashboard' }">
+                    <div class="relative z-10 rounded-2xl overflow-hidden bg-white border border-dark-200/60 shadow-xl">
+                        <!-- Browser Frame -->
+                        <div class="bg-dark-100/50 px-4 py-3 flex items-center border-b border-dark-200/40">
+                            <div class="flex space-x-2">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <div class="mx-auto bg-white rounded-lg w-1/2 px-3 py-1.5 text-sm text-dark-500 flex items-center">
+                                <svg class="h-4 w-4 text-dark-400 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                                </svg>
+                                pdfpro.io/dashboard
+                            </div>
+                        </div>
+                        
+                        <!-- Dashboard Interactive Preview -->
+                        <div class="relative p-6 bg-dark-50">
+                            <!-- Dashboard Tabs -->
+                            <div class="mb-5 flex border-b border-dark-200/40">
+                                <button @click="selectedTab = 'dashboard'" :class="{'border-b-2 border-primary-600 text-primary-600': selectedTab === 'dashboard', 'text-dark-500 hover:text-dark-800': selectedTab !== 'dashboard'}" class="px-4 py-2 font-medium text-sm -mb-px transition-colors">
+                                    Dashboard
+                                </button>
+                                <button @click="selectedTab = 'generate'" :class="{'border-b-2 border-primary-600 text-primary-600': selectedTab === 'generate', 'text-dark-500 hover:text-dark-800': selectedTab !== 'generate'}" class="px-4 py-2 font-medium text-sm -mb-px transition-colors">
+                                    Générer un PDF
+                                </button>
+                                <button @click="selectedTab = 'history'" :class="{'border-b-2 border-primary-600 text-primary-600': selectedTab === 'history', 'text-dark-500 hover:text-dark-800': selectedTab !== 'history'}" class="px-4 py-2 font-medium text-sm -mb-px transition-colors">
+                                    Historique
+                                </button>
+                            </div>
+                            
+                            <!-- Dashboard Content -->
+                            <div x-show="selectedTab === 'dashboard'" class="space-y-6">
+                                <!-- Stats Row -->
+                                <div class="grid grid-cols-4 gap-4">
+                                    <div class="bg-white rounded-xl p-4 shadow-sm border border-dark-200/40">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-xs text-dark-500">PDFs Créés</p>
+                                                <p class="text-xl font-bold text-dark-900">26</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded-xl p-4 shadow-sm border border-dark-200/40">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-xs text-dark-500">PDFs Restants</p>
+                                                <p class="text-xl font-bold text-dark-900">74</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded-xl p-4 shadow-sm border border-dark-200/40">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-xs text-dark-500">Abonnement</p>
+                                                <p class="text-xl font-bold text-dark-900">Pro</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded-xl p-4 shadow-sm border border-dark-200/40">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                                                <svg class="h-5 w-5 text-amber-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3">
+                                                <p class="text-xs text-dark-500">Date</p>
+                                                <p class="text-xl font-bold text-dark-900">{{ "now"|date("d/m/Y") }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Recent Files Section -->
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="col-span-2">
+                                        <div class="bg-white rounded-xl p-4 border border-dark-200/40 shadow-sm">
+                                            <div class="flex justify-between items-center mb-3">
+                                                <h3 class="font-semibold text-dark-900">Fichiers récents</h3>
+                                                <span class="text-xs font-medium text-primary-600 cursor-pointer">Voir tous</span>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="p-3 bg-dark-50 rounded-lg border border-dark-200/30">
+                                                    <div class="flex items-center">
+                                                        <div class="flex-shrink-0 w-8 h-8 rounded-md bg-red-100 flex items-center justify-center">
+                                                            <svg class="w-4 h-4 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <p class="text-xs font-medium text-dark-900">rapport-financier.pdf</p>
+                                                            <p class="text-xs text-dark-500">Il y a 2 jours</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="p-3 bg-dark-50 rounded-lg border border-dark-200/30">
+                                                    <div class="flex items-center">
+                                                        <div class="flex-shrink-0 w-8 h-8 rounded-md bg-red-100 flex items-center justify-center">
+                                                            <svg class="w-4 h-4 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                            </svg>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <p class="text-xs font-medium text-dark-900">contrat-client.pdf</p>
+                                                            <p class="text-xs text-dark-500">Il y a 3 jours</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <button class="mt-3 w-full bg-primary-50 text-primary-700 rounded-lg p-2 text-sm font-medium hover:bg-primary-100 transition-colors">
+                                                <svg class="w-4 h-4 inline-block mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                                                </svg>
+                                                Nouveau PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-span-1">
+                                        <div class="bg-white rounded-xl p-4 border border-dark-200/40 shadow-sm h-full">
+                                            <h3 class="font-semibold text-dark-900 mb-3">Abonnement Pro</h3>
+                                            <div class="bg-primary-50 rounded-lg p-3">
+                                                <div class="flex items-center">
+                                                    <svg class="w-5 h-5 text-primary-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span class="ml-2 text-sm font-medium text-primary-800">Fonctionnalités Premium</span>
+                                                </div>
+                                                <div class="mt-2 bg-white rounded-md p-2 text-xs text-dark-600">
+                                                    <div class="flex justify-between mb-1">
+                                                        <span>Utilisation</span>
+                                                        <span class="font-medium">26 / 100</span>
+                                                    </div>
+                                                    <div class="w-full h-1.5 bg-dark-100 rounded-full">
+                                                        <div class="bg-primary-600 h-full rounded-full" style="width: 26%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Generate PDF Tab -->
+                            <div x-show="selectedTab === 'generate'" style="display: none;" class="space-y-4">
+                                <div class="bg-white rounded-xl p-5 border border-dark-200/40 shadow-sm">
+                                    <h3 class="font-semibold text-dark-900 mb-4">Générer un nouveau PDF</h3>
+                                    
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-dark-700 mb-1.5">URL de la page</label>
+                                            <div class="relative">
+                                                <input type="text" class="block w-full rounded-xl border border-dark-200 py-2.5 px-3.5 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm" placeholder="https://" />
+                                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                    <svg class="h-5 w-5 text-dark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-dark-700 mb-1.5">Format</label>
+                                                <select class="block w-full rounded-xl border border-dark-200 py-2.5 px-3.5 text-dark-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm">
+                                                    <option>A4</option>
+                                                    <option>Letter</option>
+                                                    <option>Legal</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-dark-700 mb-1.5">Orientation</label>
+                                                <select class="block w-full rounded-xl border border-dark-200 py-2.5 px-3.5 text-dark-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm">
+                                                    <option>Portrait</option>
+                                                    <option>Paysage</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <button class="w-full inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-200 ease-in-out">
+                                            <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                            </svg>
+                                            Générer le PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- History Tab -->
+                            <div x-show="selectedTab === 'history'" style="display: none;" class="space-y-4">
+                                <div class="bg-white rounded-xl p-5 border border-dark-200/40 shadow-sm">
+                                    <h3 class="font-semibold text-dark-900 mb-4">Historique des PDF</h3>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex items-center p-3 bg-dark-50 rounded-lg border border-dark-200/30 hover:bg-dark-100/50 transition-colors cursor-pointer">
+                                            <div class="flex-shrink-0 w-9 h-9 rounded-md bg-red-100 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <p class="text-sm font-medium text-dark-900">rapport-financier.pdf</p>
+                                                <p class="text-xs text-dark-500">Créé le {{ "now"|date_modify("-2 days")|date("d/m/Y H:i") }}</p>
+                                            </div>
+                                            <div class="flex space-x-2">
+                                                <button class="p-1.5 rounded-lg text-dark-500 hover:bg-dark-200/50 hover:text-dark-700">
+                                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                                <button class="p-1.5 rounded-lg text-dark-500 hover:bg-dark-200/50 hover:text-dark-700">
+                                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center p-3 bg-dark-50 rounded-lg border border-dark-200/30 hover:bg-dark-100/50 transition-colors cursor-pointer">
+                                            <div class="flex-shrink-0 w-9 h-9 rounded-md bg-red-100 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <p class="text-sm font-medium text-dark-900">contrat-client.pdf</p>
+                                                <p class="text-xs text-dark-500">Créé le {{ "now"|date_modify("-3 days")|date("d/m/Y H:i") }}</p>
+                                            </div>
+                                            <div class="flex space-x-2">
+                                                <button class="p-1.5 rounded-lg text-dark-500 hover:bg-dark-200/50 hover:text-dark-700">
+                                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                                <button class="p-1.5 rounded-lg text-dark-500 hover:bg-dark-200/50 hover:text-dark-700">
+                                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center p-3 bg-dark-50 rounded-lg border border-dark-200/30 hover:bg-dark-100/50 transition-colors cursor-pointer">
+                                            <div class="flex-shrink-0 w-9 h-9 rounded-md bg-red-100 flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <p class="text-sm font-medium text-dark-900">presentation.pdf</p>
+                                                <p class="text-xs text-dark-500">Créé le {{ "now"|date_modify("-5 days")|date("d/m/Y H:i") }}</p>
+                                            </div>
+                                            <div class="flex space-x-2">
+                                                <button class="p-1.5 rounded-lg text-dark-500 hover:bg-dark-200/50 hover:text-dark-700">
+                                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                                <button class="p-1.5 rounded-lg text-dark-500 hover:bg-dark-200/50 hover:text-dark-700">
+                                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Decorative elements -->
+                    <div class="absolute top-0 bottom-0 left-0 right-0 z-0">
+                        <div class="absolute -top-6 -right-6 h-32 w-32 rounded-full bg-primary-200 opacity-60 blur-xl"></div>
+                        <div class="absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-primary-100 opacity-60 blur-xl"></div>
+                    </div>
+                    
+                    <!-- Call to action overlay -->
+                    <div x-show="!isActive" @click="isActive = true" class="absolute inset-0 z-20 bg-dark-900/50 backdrop-blur-sm rounded-2xl flex items-center justify-center cursor-pointer">
+                        <button class="bg-white text-primary-600 hover:text-primary-700 font-medium px-6 py-3 rounded-xl shadow-lg transition-all hover:shadow-xl">
+                            Essayez l'interface interactive
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comment ça marche -->
+            <div id="fonctionnement" class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <span class="inline-block px-4 py-2 rounded-full bg-dark-100 text-dark-800 text-sm font-medium mb-4">Comment ça marche</span>
+                    <h2 class="text-3xl font-bold text-dark-900 mb-4">Simple, rapide et efficace</h2>
+                    <p class="text-lg text-dark-600 max-w-3xl mx-auto">
+                        Générer un PDF professionnel n'a jamais été aussi simple. Suivez ces étapes et obtenez votre document en quelques secondes.
+                    </p>
+                </div>
+                
+                <div class="flex flex-col md:flex-row gap-12 items-center">
+                    <div class="w-full md:w-1/2 order-2 md:order-1">
+                        <div class="space-y-12">
+                            <div class="flex gap-6 items-start">
+                                <div class="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-100 text-primary-600 text-lg font-semibold">1</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-dark-900 mb-2">Entrez l'URL de votre page web</h3>
+                                    <p class="text-dark-600">Collez simplement l'adresse de la page que vous voulez convertir en PDF dans notre interface intuitive.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-6 items-start">
+                                <div class="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-100 text-primary-600 text-lg font-semibold">2</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-dark-900 mb-2">Personnalisez vos options</h3>
+                                    <p class="text-dark-600">Ajustez les marges, l'orientation, les en-têtes et pieds de page selon vos besoins spécifiques.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-6 items-start">
+                                <div class="flex-shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-100 text-primary-600 text-lg font-semibold">3</div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-dark-900 mb-2">Générez et téléchargez</h3>
+                                    <p class="text-dark-600">Cliquez sur "Générer" et téléchargez votre PDF de qualité professionnelle, prêt à être utilisé ou partagé.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-1/2 order-1 md:order-2">
+                        <div class="bg-white p-6 rounded-2xl border border-dark-200/40 shadow-sm">
+                            <div class="bg-dark-50 rounded-lg p-4 mb-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                                    <div class="w-3 h-3 rounded-full bg-amber-400 mr-2"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <div class="mx-auto text-dark-500 text-sm">Génération de PDF</div>
+                                </div>
+                                
+                                <div class="bg-white rounded-lg p-4 border border-dark-200/40">
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-dark-700 mb-1.5">URL de la page</label>
+                                        <div class="relative">
+                                            <input type="text" class="block w-full rounded-xl border border-dark-200 py-2.5 px-3.5 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm" value="https://exemple.com/page-a-convertir" placeholder="https://..." />
+                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <svg class="h-5 w-5 text-dark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 mb-6">
+                                        <div>
+                                            <label class="block text-sm font-medium text-dark-700 mb-1.5">Format</label>
+                                            <select class="block w-full rounded-xl border border-dark-200 py-2.5 px-3.5 text-dark-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm">
+                                                <option>A4</option>
+                                                <option>Letter</option>
+                                                <option>Legal</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-dark-700 mb-1.5">Orientation</label>
+                                            <select class="block w-full rounded-xl border border-dark-200 py-2.5 px-3.5 text-dark-900 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm">
+                                                <option>Portrait</option>
+                                                <option>Paysage</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-primary-50 p-3 rounded-lg mb-4 flex items-center text-sm">
+                                        <svg class="w-5 h-5 text-primary-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="text-primary-800">Options avancées disponibles avec les forfaits Premium</span>
+                                    </div>
+                                    
+                                    <button class="w-full inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-200 ease-in-out">
+                                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
+                                        </svg>
+                                        Générer le PDF
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistiques -->
+            <div class="bg-dark-50 py-20">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <span class="inline-block px-4 py-2 rounded-full bg-white text-dark-800 text-sm font-medium mb-4">Nos chiffres</span>
+                        <h2 class="text-3xl font-bold text-dark-900 mb-4">PDFPro en quelques chiffres</h2>
+                        <p class="text-lg text-dark-600 max-w-3xl mx-auto">
+                            Des milliers d'utilisateurs nous font confiance pour leurs besoins en PDF professionnels.
+                        </p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div class="bg-white rounded-2xl p-6 text-center">
+                            <div class="text-5xl font-bold text-primary-600 mb-2">5M+</div>
+                            <p class="text-dark-600">PDFs générés</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 text-center">
+                            <div class="text-5xl font-bold text-primary-600 mb-2">99.9%</div>
+                            <p class="text-dark-600">Taux de disponibilité</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 text-center">
+                            <div class="text-5xl font-bold text-primary-600 mb-2">50k+</div>
+                            <p class="text-dark-600">Utilisateurs actifs</p>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl p-6 text-center">
+                            <div class="text-5xl font-bold text-primary-600 mb-2">4.8/5</div>
+                            <p class="text-dark-600">Note moyenne</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Section -->
+            <div id="fonctionnalites" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <span class="inline-block px-4 py-2 rounded-full bg-dark-100 text-dark-800 text-sm font-medium mb-4">Fonctionnalités</span>
+                    <h2 class="text-3xl font-bold text-dark-900 mb-4">Pourquoi choisir PDFPro ?</h2>
+                    <p class="text-lg text-dark-600 max-w-3xl mx-auto">
+                        Notre solution simple mais puissante transforme la façon dont vous créez et gérez vos PDF.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-200 transition-colors shadow-soft hover:shadow-soft-lg">
+                        <div class="h-14 w-14 rounded-xl bg-blue-100 flex items-center justify-center mb-5 group-hover:bg-blue-200 transition-colors">
+                            <svg class="h-7 w-7 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-900 mb-3 group-hover:text-primary-600 transition-colors">Rapide et efficace</h3>
+                        <p class="text-dark-600">
+                            Convertissez n'importe quelle page web en PDF en quelques secondes, sans perte de qualité et avec une mise en page parfaite.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-200 transition-colors shadow-soft hover:shadow-soft-lg">
+                        <div class="h-14 w-14 rounded-xl bg-green-100 flex items-center justify-center mb-5 group-hover:bg-green-200 transition-colors">
+                            <svg class="h-7 w-7 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                       <h3 class="text-xl font-bold text-dark-900 mb-3 group-hover:text-primary-600 transition-colors">100% sécurisé</h3>
+                        <p class="text-dark-600">
+                            Vos données sont chiffrées et sécurisées. Nous ne conservons jamais vos fichiers plus longtemps que nécessaire.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-200 transition-colors shadow-soft hover:shadow-soft-lg">
+                        <div class="h-14 w-14 rounded-xl bg-purple-100 flex items-center justify-center mb-5 group-hover:bg-purple-200 transition-colors">
+                            <svg class="h-7 w-7 text-purple-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-900 mb-3 group-hover:text-primary-600 transition-colors">Service premium</h3>
+                        <p class="text-dark-600">
+                            Une assistance clientèle réactive et des fonctionnalités avancées pour tous vos besoins en matière de PDF.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-200 transition-colors shadow-soft hover:shadow-soft-lg">
+                        <div class="h-14 w-14 rounded-xl bg-amber-100 flex items-center justify-center mb-5 group-hover:bg-amber-200 transition-colors">
+                            <svg class="h-7 w-7 text-amber-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h8V3a1 1 0 112 0v1h1a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V6a2 2 0 012-2h1V3a1 1 0 011-1zm11 14H4a1 1 0 01-1-1V7h14v8a1 1 0 01-1 1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-900 mb-3 group-hover:text-primary-600 transition-colors">Sans limite</h3>
+                        <p class="text-dark-600">
+                            Générez autant de PDF que vous le souhaitez, à tout moment, et depuis n'importe quelle URL. Idéal pour les professionnels.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-200 transition-colors shadow-soft hover:shadow-soft-lg">
+                        <div class="h-14 w-14 rounded-xl bg-red-100 flex items-center justify-center mb-5 group-hover:bg-red-200 transition-colors">
+                            <svg class="h-7 w-7 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-900 mb-3 group-hover:text-primary-600 transition-colors">Personnalisation avancée</h3>
+                        <p class="text-dark-600">
+                            Contrôlez l'apparence de vos PDF avec des options de mise en page, d'en-tête, de pied de page et de marges personnalisables.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-200 transition-colors shadow-soft hover:shadow-soft-lg">
+                        <div class="h-14 w-14 rounded-xl bg-indigo-100 flex items-center justify-center mb-5 group-hover:bg-indigo-200 transition-colors">
+                            <svg class="h-7 w-7 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-dark-900 mb-3 group-hover:text-primary-600 transition-colors">API intégrable</h3>
+                        <p class="text-dark-600">
+                            Intégrez nos fonctionnalités de conversion PDF dans vos applications grâce à notre API simple et bien documentée.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pricing Section -->
+            <div id="tarifs" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-16">
+        <span class="inline-block px-4 py-2 rounded-full bg-dark-100 text-dark-800 text-sm font-medium mb-4">Tarifs</span>
+        <h2 class="text-3xl font-bold text-dark-900 mb-4">Des offres adaptées à tous les besoins</h2>
+        <p class="text-lg text-dark-600 max-w-3xl mx-auto">
+            Choisissez le plan qui correspond le mieux à votre utilisation. Tous nos plans incluent un accès complet aux fonctionnalités de base.
+        </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <!-- Free Plan -->
+        <div class="bg-white rounded-xl border border-dark-200 shadow-sm h-full flex flex-col">
+            <div class="p-8 flex-grow">
+                <h3 class="text-2xl font-bold text-dark-900">Gratuit</h3>
+                
+                <div class="mt-6">
+                    <p class="inline-flex items-baseline">
+                        <span class="text-4xl font-extrabold text-dark-900">0€</span>
+                        <span class="text-dark-500 ml-1">/mois</span>
+                    </p>
+                </div>
+                
+                <p class="mt-4 text-dark-600">Idéal pour découvrir notre service</p>
+                
+                <ul class="mt-6 space-y-4">
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            <span class="font-semibold">5</span> PDFs par mois
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            Qualité standard
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            Support par email
+                        </span>
+                    </li>
+                    <!-- Ajout d'espaces invisibles pour équilibrer la hauteur -->
+                    <li class="opacity-0 h-6"></li>
+                    <li class="opacity-0 h-6"></li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-50 p-6 border-t border-dark-200">
+                <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium rounded-xl bg-white border border-dark-200 text-dark-700 hover:border-dark-300 hover:bg-gray-100 transition-colors">
+                    Essayer gratuitement
+                </a>
+            </div>
+        </div>
+        
+        <!-- Standard Plan -->
+        <div class="relative mt-4">
+            <!-- Badge qui flotte au-dessus -->
+            <div class="absolute top-0 left-0 right-0 flex justify-center -translate-y-1/2 z-10">
+                <div class="bg-primary-600 text-white px-4 py-1 rounded-full text-sm font-medium shadow-sm">
+                    Le plus populaire
+                </div>
+            </div>
+            
+            <!-- La carte elle-même -->
+            <div class="bg-white rounded-xl border-2 border-primary-500 shadow-md h-full flex flex-col overflow-hidden">
+                <div class="p-8 flex-grow">
+                    <h3 class="text-2xl font-bold text-dark-900">Standard</h3>
+                    
+                    <div class="mt-6">
+                        <p class="inline-flex items-baseline flex-wrap">
+                            <span class="text-4xl font-extrabold text-dark-900">7,99€</span>
+                            <span class="text-xl font-medium text-dark-500 line-through ml-2">9,99€</span>
+                            <span class="text-dark-500 ml-1">/mois</span>
+                        </p>
+                        <p class="text-sm text-green-600 mt-1">
+                            Offre spéciale jusqu'au 30/04/2025
+                        </p>
+                    </div>
+                    
+                    <p class="mt-4 text-dark-600">Pour les utilisateurs réguliers</p>
+                    
+                    <ul class="mt-6 space-y-4">
+                        <li class="flex items-start">
+                            <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="ml-3 text-dark-700">
+                                <span class="font-semibold">30</span> PDFs par mois
+                            </span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="ml-3 text-dark-700">
+                                Haute qualité d'impression
+                            </span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="ml-3 text-dark-700">
+                                Support prioritaire
+                            </span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="ml-3 text-dark-700">
+                                Options de personnalisation
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="bg-gray-50 p-6 border-t border-dark-200">
+                    <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 transition-colors">
+                        Commencer maintenant
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pro Plan -->
+        <div class="bg-white rounded-xl border border-dark-200 shadow-sm h-full flex flex-col">
+            <div class="p-8 flex-grow">
+                <h3 class="text-2xl font-bold text-dark-900">Professionnel</h3>
+                
+                <div class="mt-6">
+                    <p class="inline-flex items-baseline">
+                        <span class="text-4xl font-extrabold text-dark-900">19,99€</span>
+                        <span class="text-dark-500 ml-1">/mois</span>
+                    </p>
+                </div>
+                
+                <p class="mt-4 text-dark-600">Pour les besoins intensifs</p>
+                
+                <ul class="mt-6 space-y-4">
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            <span class="font-semibold">100</span> PDFs par mois
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            Qualité professionnelle
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            Support dédié
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            Toutes les fonctionnalités avancées
+                        </span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="flex-shrink-0 h-6 w-6 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span class="ml-3 text-dark-700">
+                            Accès à l'API
+                        </span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="bg-gray-50 p-6 border-t border-dark-200">
+                <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium rounded-xl bg-white border border-dark-200 text-dark-700 hover:border-dark-300 hover:bg-gray-100 transition-colors">
+                    Commencer maintenant
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+            
+            <!-- FAQ Section -->
+            <div id="faq" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-16">
+                    <span class="inline-block px-4 py-2 rounded-full bg-dark-100 text-dark-800 text-sm font-medium mb-4">Questions fréquentes</span>
+                    <h2 class="text-3xl font-bold text-dark-900 mb-4">Tout ce que vous devez savoir</h2>
+                    <p class="text-lg text-dark-600 max-w-3xl mx-auto">
+                        Consultez les réponses aux questions les plus courantes sur PDFPro.
+                    </p>
+                </div>
+                
+                <div class="max-w-3xl mx-auto divide-y divide-dark-200" x-data="{selected: null}">
+                    <div class="py-5">
+                        <button @click="selected !== 1 ? selected = 1 : selected = null" class="flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold text-dark-900">Comment fonctionne PDFPro ?</span>
+                            <svg :class="{'rotate-180': selected == 1}" class="h-5 w-5 text-dark-500 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-show="selected == 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="mt-3 text-dark-600" style="display: none;">
+                            <p>PDFPro utilise une technologie avancée de rendu pour capturer fidèlement le contenu de n'importe quelle page web et le convertir en un document PDF de haute qualité. Il suffit de coller l'URL de la page web que vous souhaitez convertir, de personnaliser les options si nécessaire, et de cliquer sur "Générer".</p>
+                        </div>
+                    </div>
+                    
+                    <div class="py-5">
+                        <button @click="selected !== 2 ? selected = 2 : selected = null" class="flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold text-dark-900">Puis-je convertir des pages avec authentification ?</span>
+                            <svg :class="{'rotate-180': selected == 2}" class="h-5 w-5 text-dark-500 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-show="selected == 2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="mt-3 text-dark-600" style="display: none;">
+                            <p>Les pages nécessitant une authentification peuvent présenter des défis. Pour de meilleurs résultats, utilisez notre extension de navigateur (disponible avec l'abonnement Standard et Pro) qui vous permet de capturer des pages après vous être connecté à votre compte.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="py-5">
+                        <button @click="selected !== 3 ? selected = 3 : selected = null" class="flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold text-dark-900">Comment annuler mon abonnement ?</span>
+                            <svg :class="{'rotate-180': selected == 3}" class="h-5 w-5 text-dark-500 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-show="selected == 3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="mt-3 text-dark-600" style="display: none;">
+                            <p>Vous pouvez annuler votre abonnement à tout moment depuis votre tableau de bord, dans la section "Abonnement". L'annulation prendra effet à la fin de votre période de facturation en cours, et vous ne serez pas facturé pour le mois suivant.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="py-5">
+                        <button @click="selected !== 4 ? selected = 4 : selected = null" class="flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold text-dark-900">Les PDF générés sont-ils modifiables ?</span>
+                            <svg :class="{'rotate-180': selected == 4}" class="h-5 w-5 text-dark-500 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-show="selected == 4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="mt-3 text-dark-600" style="display: none;">
+                            <p>Les PDF sont générés en mode image par défaut, ce qui n'est pas directement modifiable. Cependant, les abonnés Standard et Pro ont accès à l'option de texte sélectionnable, qui permet de copier le texte ou de l'éditer avec un logiciel PDF approprié.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="py-5">
+                        <button @click="selected !== 5 ? selected = 5 : selected = null" class="flex justify-between items-center w-full text-left focus:outline-none">
+                            <span class="text-lg font-semibold text-dark-900">Existe-t-il une API pour les développeurs ?</span>
+                            <svg :class="{'rotate-180': selected == 5}" class="h-5 w-5 text-dark-500 transform transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div x-show="selected == 5" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="mt-3 text-dark-600" style="display: none;">
+                            <p>Oui, nous proposons une API robuste avec l'abonnement Pro, permettant d'intégrer nos fonctionnalités de conversion PDF dans vos applications. Notre documentation complète vous guidera pas à pas dans le processus d'intégration.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonials -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-16">
+                    <span class="inline-block px-4 py-2 rounded-full bg-dark-100 text-dark-800 text-sm font-medium mb-4">Témoignages</span>
+                    <h2 class="text-3xl font-bold text-dark-900 mb-4">Ce que nos clients disent</h2>
+                    <p class="text-lg text-dark-600 max-w-3xl mx-auto">
+                        Découvrez pourquoi des milliers d'utilisateurs font confiance à PDFPro pour leurs besoins en PDF.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-100 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        <div class="flex items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-medium">
+                                    SC
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-base font-semibold text-dark-900">Sophie C.</h3>
+                                <p class="text-sm text-dark-500">Responsable marketing</p>
+                                <div class="flex items-center mt-1">
+                                    {% for i in 1..5 %}
+                                        <svg class="h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-dark-600 text-sm">
+                            "PDFPro a transformé ma façon de travailler. Je peux maintenant sauvegarder n'importe quelle page web en PDF en quelques secondes pour mes présentations client. Un outil vraiment indispensable dans mon quotidien professionnel !"
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-100 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        <div class="flex items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-medium">
+                                    TM
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-base font-semibold text-dark-900">Thomas M.</h3>
+                                <p class="text-sm text-dark-500">Entrepreneur</p>
+                                <div class="flex items-center mt-1">
+                                    {% for i in 1..5 %}
+                                        <svg class="h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-dark-600 text-sm">
+                            "Interface intuitive et résultats de qualité professionnelle. Les PDF générés par PDFPro sont parfaits pour mes présentations commerciales. Le plan Standard répond parfaitement à mes besoins et l'API est un vrai plus."
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 border border-dark-200/40 hover:border-primary-100 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+                        <div class="flex items-center mb-4">
+                            <div class="flex-shrink-0">
+                                <div class="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-medium">
+                                    LB
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-base font-semibold text-dark-900">Laura B.</h3>
+                                <p class="text-sm text-dark-500">Freelance designer</p>
+                                <div class="flex items-center mt-1">
+                                    {% for i in 1..5 %}
+                                        <svg class="h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-dark-600 text-sm">
+                            "Le service client est exceptionnel ! J'ai eu une question spécifique sur la mise en page et ils m'ont répondu en moins d'une heure. La qualité des PDF est impressionnante et les options de personnalisation me permettent d'obtenir exactement ce que je veux."
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CTA Section -->
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="bg-gradient-to-r from-primary-800 to-primary-600 rounded-2xl p-8 md:p-12 text-white overflow-hidden relative z-10 shadow-xl">
+                    <div class="max-w-4xl mx-auto relative z-10">
+                        <h2 class="text-3xl font-bold mb-4 text-white">Prêt à simplifier votre workflow ?</h2>
+                        <p class="text-xl opacity-90 mb-8 max-w-2xl">
+                            Rejoignez des milliers d'utilisateurs satisfaits et transformez facilement vos pages web en PDF professionnels dès aujourd'hui.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center px-8 py-4 font-medium rounded-xl bg-white text-primary-700 hover:bg-primary-50 transition-all duration-200 ease-in-out shadow-lg">
+                                Essayer gratuitement
+                            </a>
+                            <a href="#tarifs" class="inline-flex items-center justify-center px-8 py-4 font-medium rounded-xl bg-primary-700/30 backdrop-blur-sm text-white border border-white/20 hover:bg-primary-700/40 transition-all duration-200 ease-in-out">
+                                Voir nos offres
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Gradient circles for visual effect -->
+                    <div class="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-primary-500 opacity-20 blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-primary-700 opacity-20 blur-3xl"></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
