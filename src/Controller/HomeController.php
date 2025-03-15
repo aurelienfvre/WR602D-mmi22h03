@@ -15,10 +15,10 @@ class HomeController extends AbstractController
         // Si l'utilisateur est connecté, on récupère ses données
         $user = $this->getUser();
         $subscription = null;
-        
+
         if ($user) {
             $subscription = $user->getSubscription();
-            
+
             // Si l'utilisateur n'a pas d'abonnement, on lui propose les abonnements disponibles
             if (!$subscription) {
                 $subscriptions = $subscriptionRepository->findAll();
@@ -27,7 +27,7 @@ class HomeController extends AbstractController
                 ]);
             }
         }
-        
+
         return $this->render('home/index.html.twig');
     }
 }

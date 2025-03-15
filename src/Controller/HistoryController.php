@@ -13,9 +13,9 @@ class HistoryController extends AbstractController
     public function index(FileRepository $fileRepository): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        
+
         $files = $fileRepository->findBy(['user' => $this->getUser()], ['created_at' => 'DESC']);
-        
+
         return $this->render('history/index.html.twig', [
             'files' => $files,
         ]);

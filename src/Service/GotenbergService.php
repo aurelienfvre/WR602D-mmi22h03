@@ -38,7 +38,7 @@ class GotenbergService
             unlink($tmpFile);
 
             if ($response->getStatusCode() !== 200) {
-                return new Response("Erreur lors de la génération du PDF : " . 
+                return new Response("Erreur lors de la génération du PDF : " .
                 $response->getContent(false), $response->getStatusCode());
             }
 
@@ -60,7 +60,7 @@ class GotenbergService
         try {
             error_log("Début de la requête pour l'URL : " . $url);
             error_log("URL Gotenberg complète : " . $this->gotenbergUrl . '/forms/chromium/convert/url');
-            
+
             $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/url', [
                 'headers' => [
                     'Content-Type' => 'multipart/form-data',
@@ -69,12 +69,12 @@ class GotenbergService
                     'url' => $url,
                 ],
             ]);
-            
+
             error_log("Requête envoyée. Code de statut : " . $response->getStatusCode());
 
 
             if ($response->getStatusCode() !== 200) {
-                return new Response("Erreur lors de la génération du PDF : " . 
+                return new Response("Erreur lors de la génération du PDF : " .
                     $response->getContent(false), $response->getStatusCode());
             }
 

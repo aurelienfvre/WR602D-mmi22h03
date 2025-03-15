@@ -27,7 +27,7 @@ class AppFixtures extends Fixture
         $free->setMaxPdf(5);
         $free->setPrice(0);
         $manager->persist($free);
-        
+
         $standard = new Subscription();
         $standard->setName('Standard');
         $standard->setDescription('Pour les utilisateurs réguliers');
@@ -37,7 +37,7 @@ class AppFixtures extends Fixture
         $standard->setSpecialPriceFrom(new \DateTime('2025-01-01'));
         $standard->setSpecialPriceTo(new \DateTime('2025-04-30'));
         $manager->persist($standard);
-        
+
         $pro = new Subscription();
         $pro->setName('Professionnel');
         $pro->setDescription('Pour les besoins intensifs');
@@ -54,7 +54,7 @@ class AppFixtures extends Fixture
         $admin->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
         $admin->setSubscription($pro);
         $manager->persist($admin);
-        
+
         $user = new User();
         $user->setEmail('user@pdf-generator.com');
         $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
@@ -63,20 +63,20 @@ class AppFixtures extends Fixture
         $user->setRoles(['ROLE_USER']);
         $user->setSubscription($standard);
         $manager->persist($user);
-        
+
         // Création de quelques fichiers d'exemple
         $file1 = new File();
         $file1->setName('rapport-2025.pdf');
         $file1->setCreatedAt(new \DateTimeImmutable('2025-03-01'));
         $file1->setUser($user);
         $manager->persist($file1);
-        
+
         $file2 = new File();
         $file2->setName('facture-mars.pdf');
         $file2->setCreatedAt(new \DateTimeImmutable('2025-03-05'));
         $file2->setUser($user);
         $manager->persist($file2);
-        
+
         $file3 = new File();
         $file3->setName('presentation.pdf');
         $file3->setCreatedAt(new \DateTimeImmutable('2025-03-10'));
