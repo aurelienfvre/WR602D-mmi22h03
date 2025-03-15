@@ -1,0 +1,91 @@
+name: Symfony Quality & CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "develop", "main", "feature/*" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+
+permissions:
+  contents: write  # Nécessaire pour que les actions puissent pousser des corrections
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite
+          coverage: xdebug
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Récupérer tout l'historique pour les analyses de qualité
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install Dependencies
+        run: |
+          composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+          # Installation des outils de qualité de code si non présents dans le composer.json
+          composer require --dev phpstan/phpstan phpmd/phpmd squizlabs/php_codesniffer --no-interaction --no-update || true
+          composer update --no-interaction --no-progress --prefer-dist
+
+      - name: Copy .env.test.local
+        run: php -r "file_exists('.env.test.local') || copy('.env.test', '.env.test.local');"
+
+      - name: Create Database for tests
+        run: |
+          mkdir -p data
+          touch data/database.sqlite
+          
+      - name: Execute PHPUnit tests
+        env:
+          DATABASE_URL: sqlite:///%kernel.project_dir%/data/database.sqlite
+        run: vendor/bin/phpunit --coverage-text
+
+      - name: Run PHP_CodeSniffer with automatic fixing
+        run: |
+          vendor/bin/phpcbf --standard=PSR12 src/ || true
+          vendor/bin/phpcs --standard=PSR12 src/
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyze src/ --level=5 || echo "PHPStan issues need to be fixed manually"
+
+      - name: Run PHPMD
+        run: vendor/bin/phpmd src/ text cleancode,codesize,controversial,design,naming || echo "PHPMD issues need to be fixed manually"
+
+      - name: Commit automatic style fixes
+        if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "Auto-fix code style issues" -a || echo "No changes to commit"
+          git push
+
+  deploy-to-main:
+    needs: quality-checks
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Historique complet nécessaire pour la fusion
+
+      - name: Merge develop into main
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git fetch origin main
+          git checkout main
+          git merge --no-ff origin/develop -m "Merge develop into main via GitHub Actions"
+          git push origin main
