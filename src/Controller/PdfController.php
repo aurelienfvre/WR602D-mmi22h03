@@ -19,7 +19,7 @@ final class PdfController extends AbstractController
     #[Route('/generate-pdf', name: 'generate_pdf')]
     public function generatePdf(): Response
     {
-        #$this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         $htmlContent = "<html><body><h1>Mon premier PDF sécurisé avec Gotenberg</h1></body></html>";
 
