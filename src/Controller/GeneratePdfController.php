@@ -18,8 +18,9 @@ final class GeneratePdfController extends AbstractController {
     }
 
     #[Route('/pdf', name: 'pdf_generate')]
-    public function generatePdf(Request $request): Response
-    {
+public function generatePdf(Request $request): Response
+{
+    $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         // Décommenter pour sécuriser la route
         // $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         
