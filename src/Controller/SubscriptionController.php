@@ -16,13 +16,12 @@ class SubscriptionController extends AbstractController
         Request $request,
         SubscriptionRepository $subscriptionRepository,
         EntityManagerInterface $entityManager
-    ): Response
-    {
+    ): Response {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        
+
         $subscriptions = $subscriptionRepository->findAll();
         $currentSubscription = $this->getUser()->getSubscription();
-        
+
         // Traitement du formulaire
         if ($request->isMethod('POST')) {
             $subscriptionId = $request->request->get('subscription_id');
@@ -32,13 +31,13 @@ class SubscriptionController extends AbstractController
                     $user = $this->getUser();
                     $user->setSubscription($subscription);
                     $entityManager->flush();
-                    
+
                     $this->addFlash('success', 'Votre abonnement a été mis à jour avec succès.');
                     return $this->redirectToRoute('homepage');
                 }
             }
         }
-        
+
         return $this->render('subscription/change.html.twig', [
             'subscriptions' => $subscriptions,
             'currentSubscription' => $currentSubscription
