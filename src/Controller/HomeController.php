@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,7 +17,7 @@ class HomeController extends AbstractController
         $user = $this->getUser();
         $subscription = null;
 
-        if ($user) {
+        if ($user instanceof User) {
             $subscription = $user->getSubscription();
 
             // Si l'utilisateur n'a pas d'abonnement, on lui propose les abonnements disponibles

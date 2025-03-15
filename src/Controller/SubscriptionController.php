@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\SubscriptionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,11 +17,17 @@ class SubscriptionController extends AbstractController
         Request $request,
         SubscriptionRepository $subscriptionRepository,
         EntityManagerInterface $entityManager
-    ): Response {
+    ): Response
+    {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('L\'utilisateur doit être une instance de App\Entity\User');
+        }
+
         $subscriptions = $subscriptionRepository->findAll();
-        $currentSubscription = $this->getUser()->getSubscription();
+        $currentSubscription = $user->getSubscription();
 
         // Traitement du formulaire
         if ($request->isMethod('POST')) {
@@ -28,7 +35,6 @@ class SubscriptionController extends AbstractController
             if ($subscriptionId) {
                 $subscription = $subscriptionRepository->find($subscriptionId);
                 if ($subscription) {
-                    $user = $this->getUser();
                     $user->setSubscription($subscription);
                     $entityManager->flush();
 
