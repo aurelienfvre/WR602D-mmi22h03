@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        h1 {
+            color: #4F46E5;
+            margin-top: 0;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Votre PDF est prêt !</h1>
+        
+        <p>Bonjour,</p>
+        
+        <p>Votre document PDF <strong>{{ pdfName }}</strong> a été généré avec succès.</p>
+        
+        <p>Vous trouverez le document en pièce jointe de cet email.</p>
+        
+        <p>Merci d'utiliser PDFPro pour vos conversions de pages web en PDF.</p>
+        
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+            <p>&copy; PDFPro - Tous droits réservés</p>
+        </div>
+    </div>
+</body>
+</html>
