@@ -22,7 +22,7 @@ class File
     #[ORM\ManyToOne(inversedBy: 'files')]
     private ?User $user = null;
 
-    
+
 
     public function getId(): ?int
     {
