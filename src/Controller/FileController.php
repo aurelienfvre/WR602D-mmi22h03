@@ -1,4 +1,5 @@
 <?php
+
 // src/Controller/FileController.php
 
 namespace App\Controller;
@@ -25,13 +26,13 @@ class FileController extends AbstractController
         $user = $this->getUser();
         $subscription = $user->getSubscription();
         $maxPdf = $subscription ? $subscription->getMaxPdf() : 0;
-        
+
         // Récupérer la position du fichier dans la liste des fichiers de l'utilisateur
         $userFiles = $entityManager->getRepository(File::class)
             ->findBy(['user' => $user], ['createdAt' => 'DESC']);
-        
+
         $position = array_search($file, $userFiles);
-        
+
         // Si le fichier est verrouillé (en-dehors de la limite d'abonnement)
         if ($position !== false && $position >= $maxPdf) {
             $this->addFlash('error', 'Ce fichier est verrouillé dans votre abonnement actuel. 
@@ -40,7 +41,7 @@ class FileController extends AbstractController
         }
 
         $filePath = $this->getParameter('kernel.project_dir') . '/public/uploads/pdfs/' . $file->getName();
-        
+
         // Vérifier si le fichier existe
         if (!file_exists($filePath)) {
             $this->addFlash('error', 'Le fichier demandé n\'existe pas.');

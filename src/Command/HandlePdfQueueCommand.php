@@ -1,4 +1,5 @@
 <?php
+
 // src/Command/HandlePdfQueueCommand.php
 
 namespace App\Command;
@@ -42,7 +43,7 @@ class HandlePdfQueueCommand extends Command
         $this->gotenbergService = $gotenbergService;
         $this->pdfEmailService = $pdfEmailService;
         $this->entityManager = $entityManager;
-        
+
         // Résoudre le chemin correctement
         $this->pdfDirectory = $parameterBag->get('kernel.project_dir') . '/public/uploads/pdfs';
     }
@@ -109,11 +110,11 @@ class HandlePdfQueueCommand extends Command
 
                 // Use the Gotenberg service to generate the PDF and save it
                 $pdfContent = $this->gotenbergService->generatePdfFromUrlToFile($queueItem->getUrl(), $filePath);
-                
+
                 // If PDF generation was successful
                 if ($pdfContent) {
                     $io->note('PDF generation successful');
-                    
+
                     // Create a File entity and save to database
                     $file = new File();
                     $file->setName($filename);

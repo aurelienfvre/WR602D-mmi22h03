@@ -1,4 +1,5 @@
 <?php
+
 // src/Service/PdfQueueService.php
 
 namespace App\Service;
@@ -38,10 +39,10 @@ class PdfQueueService
 
         // Récupérer la limite de l'abonnement
         $maxPdf = $user->getSubscription()->getMaxPdf();
-        
+
         // Compter les fichiers PDF existants
         $currentPdfCount = $this->fileRepository->countUserFiles($user->getId());
-        
+
         // Vérifier si l'utilisateur peut générer plus de PDF
         return $currentPdfCount < $maxPdf;
     }
@@ -52,13 +53,13 @@ class PdfQueueService
         if (!$this->canUserGeneratePdf($user)) {
             throw new \Exception("Limite d'abonnement atteinte. Impossible de générer plus de PDF.");
         }
-        
+
         $queueItem = new PdfGenerationQueue();
         $queueItem->setUrl($url);
         $queueItem->setStatus('pending');
         $queueItem->setCreatedAt(new \DateTimeImmutable());
         $queueItem->setUser($user);
-        
+
         if ($emailTo) {
             $queueItem->setEmailTo($emailTo);
         }

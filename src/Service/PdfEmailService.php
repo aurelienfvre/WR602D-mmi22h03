@@ -1,4 +1,5 @@
 <?php
+
 // src/Service/PdfEmailService.php
 
 namespace App\Service;

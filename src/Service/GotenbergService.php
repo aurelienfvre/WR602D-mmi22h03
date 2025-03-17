@@ -46,19 +46,19 @@ class GotenbergService
         }
 
         $maxPdf = $subscription->getMaxPdf();
-        
+
         // Calculer le début et la fin de la journée
         $now = new DateTimeImmutable();
         $startOfDay = $now->setTime(0, 0, 0);
         $endOfDay = $now->setTime(23, 59, 59);
-        
+
         // Compter les PDF générés aujourd'hui
         $pdfCount = $this->fileRepository->countFileGeneratedByUserOnDate(
             $user->getId(),
             $startOfDay,
             $endOfDay
         );
-        
+
         // Vérifier si l'utilisateur peut générer plus de PDF
         return $pdfCount < $maxPdf;
     }
@@ -72,10 +72,10 @@ class GotenbergService
         $file->setName($filename);
         $file->setCreatedAt(new DateTimeImmutable());
         $file->setUser($user);
-        
+
         $this->entityManager->persist($file);
         $this->entityManager->flush();
-        
+
         return $file;
     }
 
@@ -113,10 +113,10 @@ class GotenbergService
             // Déterminer le type MIME
             $finfo = new \finfo(FILEINFO_MIME_TYPE);
             $mimeType = $finfo->file($filePath);
-        
+
             error_log("Génération de PDF à partir du fichier: $filePath (type: $mimeType)");
             error_log("Chemin de sortie: $outputPath");
-        
+
             // Traitement différent selon le type de fichier
             if (strpos($mimeType, 'text/html') === 0) {
                 // Si c'est un fichier HTML, utiliser la conversion HTML
@@ -145,8 +145,10 @@ class GotenbergService
                     return true;
                 }
                 return false;
-            } elseif (in_array($mimeType, ['application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])) {
+            } elseif (
+                in_array($mimeType, ['application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+            ) {
                 // Pour les documents Word
                 $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/libreoffice/convert', [
                 'headers' => [
@@ -167,27 +169,27 @@ class GotenbergService
                 ],
                 ]);
             }
-        
+
             // Traiter la réponse
             if (isset($response)) {
                 if ($response->getStatusCode() !== 200) {
                     error_log("Erreur Gotenberg: " . $response->getStatusCode());
                     return false;
                 }
-            
+
                 // Sauvegarder le fichier
                 $pdfContent = $response->getContent();
                 $bytesWritten = file_put_contents($outputPath, $pdfContent);
-            
+
                 if ($bytesWritten === false) {
                     error_log("Échec de l'écriture du fichier: $outputPath");
                     return false;
                 }
-            
+
                 error_log("PDF généré avec succès: $outputPath ($bytesWritten octets)");
                 return true;
             }
-        
+
             return false;
         } catch (\Exception $e) {
             error_log("Exception lors de la génération du PDF: " . $e->getMessage());
@@ -230,7 +232,7 @@ class GotenbergService
             if ($user) {
                 $filename = 'pdf_' . $user->getId() . '_' . (new DateTimeImmutable())->format('YmdHis') . '.pdf';
                 $filePath = $this->getUploadDirectory() . '/' . $filename;
-                
+
                 file_put_contents($filePath, $response->getContent(false));
                 $this->recordPdfFile($filename, $user);
             }
@@ -280,7 +282,7 @@ class GotenbergService
             if ($user) {
                 $filename = 'pdf_' . $user->getId() . '_' . (new DateTimeImmutable())->format('YmdHis') . '.pdf';
                 $filePath = $this->getUploadDirectory() . '/' . $filename;
-                
+
                 file_put_contents($filePath, $response->getContent(false));
                 $this->recordPdfFile($filename, $user);
             }
@@ -322,13 +324,13 @@ class GotenbergService
 
             // Sauvegarder le contenu dans un fichier
             file_put_contents($filePath, $response->getContent());
-            
+
             // Enregistrer le fichier si un utilisateur est fourni
             if ($user) {
                 $filename = basename($filePath);
                 $this->recordPdfFile($filename, $user);
             }
-            
+
             return true;
         } catch (\Exception $e) {
             // Log l'erreur
@@ -343,19 +345,19 @@ class GotenbergService
     private function getUploadDirectory(): string
     {
         $dir = dirname(__DIR__, 2) . '/public/uploads/pdfs';
-        
+
         // Créer le répertoire s'il n'existe pas
         if (!file_exists($dir)) {
             mkdir($dir, 0777, true);
             error_log("Créé le répertoire PDF : " . $dir);
         }
-        
+
         // Vérifier et corriger les permissions
         if (!is_writable($dir)) {
             chmod($dir, 0777);
             error_log("Permissions du répertoire PDF mises à jour");
         }
-        
+
         return $dir;
     }
 }

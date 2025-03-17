@@ -21,9 +21,11 @@ class FileRepository extends ServiceEntityRepository
      * Compte les fichiers PDF générés par un utilisateur à une date donnée
      * Cette méthode est utilisée pour vérifier si l'utilisateur a atteint sa limite quotidienne
      */
-    public function countFileGeneratedByUserOnDate(int $userId,
-    DateTimeInterface $startOfDay, DateTimeInterface $endOfDay): int
-    {
+    public function countFileGeneratedByUserOnDate(
+        int $userId,
+        DateTimeInterface $startOfDay,
+        DateTimeInterface $endOfDay
+    ): int {
         return (int) $this->createQueryBuilder('f')
             ->select('COUNT(f.id)')
             ->where('f.user = :userId')

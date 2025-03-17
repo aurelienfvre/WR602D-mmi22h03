@@ -26,7 +26,7 @@ final class PdfController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         $user = $this->getUser();
-        
+
         // Vérifier si l'utilisateur peut générer plus de PDF selon son abonnement
         if (!$this->pdfQueueService->canUserGeneratePdf($user)) {
             $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. 
