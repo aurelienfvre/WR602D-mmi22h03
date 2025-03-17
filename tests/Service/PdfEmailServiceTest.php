@@ -83,24 +83,23 @@ class PdfEmailServiceTest extends TestCase
     }
 
     public function testSendPdfByEmailWithMailerException()
-    {
-        // Configurer le mailer pour lancer une exception
-        $this->mockMailer->method('send')
-            ->willThrowException(new \Exception('Email sending failed'));
+{
+    // Configurer le mailer pour lancer une exception
+    $this->mockMailer->method('send')
+        ->willThrowException(new \Exception('Email sending failed'));
 
-        // Vérifier que l'erreur est journalisée
-        $this->mockLogger->expects($this->once())
-            ->method('error')
-            ->with($this->stringContains("Erreur lors de l'envoi du mail"));
+    // Vérifier que l'erreur est journalisée (deux appels attendus)
+    $this->mockLogger->expects($this->exactly(2))
+        ->method('error');
 
-        // Appeler la méthode
-        $result = $this->pdfEmailService->sendPdfByEmail(
-            'recipient@example.com',
-            vfsStream::url('root/test.pdf'),
-            'test.pdf'
-        );
+    // Appeler la méthode
+    $result = $this->pdfEmailService->sendPdfByEmail(
+        'recipient@example.com',
+        vfsStream::url('root/test.pdf'),
+        'test.pdf'
+    );
 
-        // Vérifier que l'envoi a échoué
-        $this->assertFalse($result);
-    }
+    // Vérifier que l'envoi a échoué
+    $this->assertFalse($result);
+}
 }

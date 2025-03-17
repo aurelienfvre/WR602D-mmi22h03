@@ -4,12 +4,9 @@
 
 namespace App\Controller;
 
-use App\Entity\File;
 use App\Form\GeneratePdfType;
-use App\Service\GotenbergService;
 use App\Service\PdfQueueService;
 use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,21 +15,15 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 final class GeneratePdfController extends AbstractController
 {
-    private GotenbergService $gotenbergService;
     private PdfQueueService $pdfQueueService;
     private SluggerInterface $slugger;
-    private EntityManagerInterface $entityManager;
 
     public function __construct(
-        GotenbergService $gotenbergService,
         PdfQueueService $pdfQueueService,
-        SluggerInterface $slugger,
-        EntityManagerInterface $entityManager
+        SluggerInterface $slugger
     ) {
-        $this->gotenbergService = $gotenbergService;
         $this->pdfQueueService = $pdfQueueService;
         $this->slugger = $slugger;
-        $this->entityManager = $entityManager;
     }
 
     #[Route('/pdf', name: 'pdf_generate')]
@@ -43,8 +34,8 @@ final class GeneratePdfController extends AbstractController
 
         // Vérifier si l'utilisateur peut générer plus de PDF selon son abonnement
         if (!$this->pdfQueueService->canUserGeneratePdf($user)) {
-            $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. 
-            Veuillez mettre à niveau pour générer plus de PDF.');
+            $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. '
+                . 'Veuillez mettre à niveau pour générer plus de PDF.');
             return $this->redirectToRoute('subscription_change');
         }
 
@@ -68,7 +59,8 @@ final class GeneratePdfController extends AbstractController
                     // Traitement du fichier téléchargé
                     $originalFilename = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_FILENAME);
                     $safeFilename = $this->slugger->slug($originalFilename);
-                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $uploadedFile->guessExtension();
+                    $extension = $uploadedFile->guessExtension() ?: 'bin';
+                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $extension;
 
                     // Déplacer le fichier dans un répertoire temporaire
                     $tempDirectory = $this->getParameter('kernel.project_dir') . '/var/tmp';
@@ -84,60 +76,36 @@ final class GeneratePdfController extends AbstractController
                         throw new \Exception("Erreur: Le fichier temporaire n'a pas été créé.");
                     }
 
-                    // Générer un nom pour le fichier PDF de sortie
-                    $pdfFilename = 'pdf_' . $user->getId() . '_' . (new DateTimeImmutable())->format('YmdHis') . '.pdf';
-                    $pdfPath = $this->getParameter('kernel.project_dir') . '/public/uploads/pdfs/' . $pdfFilename;
-
-                    // Assurez-vous que le répertoire de destination existe
-                    $pdfDir = dirname($pdfPath);
-                    if (!file_exists($pdfDir)) {
-                        mkdir($pdfDir, 0777, true);
-                    }
-
-                    // Convertir le fichier en PDF
-                    $result = $this->gotenbergService->generatePdfFromFile(
+                    // Ajouter à la file d'attente
+                    $this->pdfQueueService->addFileToQueue(
                         $filePath,
-                        $pdfPath,
                         $originalFilename,
-                        $user
+                        $user,
+                        $emailTo
                     );
 
-                    // Supprimer le fichier temporaire
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
+                    // Message de succès
+                    $this->addFlash('success', 'Votre fichier a été placé en file d\'attente pour conversion en PDF.');
 
-                    // Si la conversion a réussi, créer une entité File
-                    if ($result) {
-                        $file = new File();
-                        $file->setName($pdfFilename);
-                        $file->setCreatedAt(new DateTimeImmutable());
-                        $file->setUser($user);
-
-                        $this->entityManager->persist($file);
-                        $this->entityManager->flush();
-
-                        // Si un email est spécifié
-                        if ($emailTo) {
-                            $this->addFlash('info', 'Vous recevrez un email à ' . $emailTo . ' avec votre PDF.');
-                        }
-
-                        $this->addFlash('success', 'Votre PDF a été généré avec succès.');
-                        return $this->redirectToRoute('history');
+                    if ($emailTo) {
+                        $this->addFlash('info', 'Vous recevrez un email à '
+                            . $emailTo . ' lorsque votre PDF sera prêt.');
                     } else {
-                        throw new \Exception("Erreur lors de la génération du PDF.");
+                        $this->addFlash('info', 'Votre PDF sera disponible dans votre historique une fois généré.');
                     }
+
+                    return $this->redirectToRoute('history');
                 } elseif (!empty($formData['url'])) {
                     // Ajouter à la file d'attente
                     $this->pdfQueueService->addToQueue($formData['url'], $user, $emailTo);
 
                     // Rediriger avec un message
-                    $this->addFlash('success', 'Votre demande de génération de PDF 
-                    a été placée en file d\'attente. Le document sera généré prochainement.');
+                    $this->addFlash('success', 'Votre demande de génération de PDF '
+                        . 'a été placée en file d\'attente. Le document sera généré prochainement.');
 
                     if ($emailTo) {
                         $this->addFlash('info', 'Vous recevrez un email à '
-                        . $emailTo . ' lorsque votre PDF sera prêt.');
+                            . $emailTo . ' lorsque votre PDF sera prêt.');
                     } else {
                         $this->addFlash('info', 'Votre PDF sera disponible dans votre historique une fois généré.');
                     }
@@ -147,7 +115,14 @@ final class GeneratePdfController extends AbstractController
                     $this->addFlash('error', 'Veuillez soit entrer une URL, soit télécharger un fichier.');
                 }
             } catch (\Exception $e) {
+                error_log("Exception dans GeneratePdfController: " . $e->getMessage());
+                error_log($e->getTraceAsString());
                 $this->addFlash('error', 'Erreur: ' . $e->getMessage());
+            }
+        } elseif ($form->isSubmitted()) {
+            // Si le formulaire est soumis mais non valide, afficher les erreurs
+            foreach ($form->getErrors(true) as $error) {
+                $this->addFlash('error', $error->getMessage());
             }
         }
 
