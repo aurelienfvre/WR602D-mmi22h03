@@ -1,4 +1,5 @@
 <?php
+
 // src/Command/HandlePdfQueueCommand.php
 
 namespace App\Command;
@@ -43,7 +44,7 @@ class HandlePdfQueueCommand extends Command
         $this->gotenbergService = $gotenbergService;
         $this->pdfEmailService = $pdfEmailService;
         $this->entityManager = $entityManager;
-        
+
         // Résoudre le chemin correctement
         $this->pdfDirectory = $parameterBag->get('kernel.project_dir') . '/public/uploads/pdfs';
     }
@@ -107,9 +108,9 @@ class HandlePdfQueueCommand extends Command
                 $filePath = $this->pdfDirectory . '/' . $filename;
 
                 $io->note('Generating PDF to: ' . $filePath);
-                
+
                 $result = false;
-                
+
                 // Traiter différemment selon le type de source
                 if ($queueItem->getSourceType() === PdfGenerationQueue::SOURCE_TYPE_URL) {
                     // Génération de PDF à partir d'une URL
@@ -123,32 +124,32 @@ class HandlePdfQueueCommand extends Command
                     // Génération de PDF à partir d'un fichier
                     $sourceFilePath = $queueItem->getSourceFilePath();
                     $io->note('Processing file: ' . $sourceFilePath);
-                    
+
                     if (!file_exists($sourceFilePath)) {
                         $io->error('Source file does not exist: ' . $sourceFilePath);
                         $this->pdfQueueService->markAsFailed($queueItem);
                         $failCount++;
                         continue;
                     }
-                    
+
                     $result = $this->gotenbergService->generatePdfFromFile(
                         $sourceFilePath,
                         $filePath,
                         $queueItem->getOriginalFilename() ?: basename($sourceFilePath),
                         $queueItem->getUser()
                     );
-                    
+
                     // Nettoyer le fichier source après conversion
                     if (file_exists($sourceFilePath)) {
                         unlink($sourceFilePath);
                         $io->note('Deleted source file after processing: ' . $sourceFilePath);
                     }
                 }
-                
+
                 // If PDF generation was successful
                 if ($result) {
                     $io->note('PDF generation successful');
-                    
+
                     // Create a File entity and save to database
                     $file = new File();
                     $file->setName($filename);
@@ -164,7 +165,7 @@ class HandlePdfQueueCommand extends Command
                             $filePath,
                             $filename
                         );
-                        
+
                         if (!$emailResult) {
                             $io->warning('Email sending failed to: ' . $queueItem->getEmailTo());
                         }

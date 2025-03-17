@@ -71,17 +71,17 @@ class GeneratePdfType extends AbstractType
             ->add('submit', SubmitType::class, [
                 'label' => 'Générer le PDF',
             ]);
-            
+
         // Ajouter un écouteur d'événement pour valider le formulaire
         $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
             $form = $event->getForm();
             $data = $form->getData();
-            
+
             // Vérifier si à la fois l'URL et le fichier uploadé sont vides
             if (empty($data['url']) && !$form->get('uploadedFile')->getData()) {
                 $form->addError(new FormError('Veuillez soit entrer une URL, soit télécharger un fichier.'));
             }
-            
+
             // Vérifier si l'email est requis mais non renseigné
             if (isset($data['sendByEmail']) && $data['sendByEmail'] && empty($data['emailAddress'])) {
                 $form->get('emailAddress')->addError(new FormError('L\'adresse email est requise lorsque
