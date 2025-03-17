@@ -47,6 +47,9 @@ class PdfQueueService
         return $currentPdfCount < $maxPdf;
     }
 
+    /**
+     * Ajoute une URL à la file d'attente pour génération de PDF
+     */
     public function addToQueue(string $url, UserInterface $user, ?string $emailTo = null): PdfGenerationQueue
     {
         // Vérifier si l'utilisateur peut générer un nouveau PDF
@@ -56,6 +59,39 @@ class PdfQueueService
 
         $queueItem = new PdfGenerationQueue();
         $queueItem->setUrl($url);
+        $queueItem->setSourceType(PdfGenerationQueue::SOURCE_TYPE_URL);
+        $queueItem->setStatus('pending');
+        $queueItem->setCreatedAt(new \DateTimeImmutable());
+        $queueItem->setUser($user);
+
+        if ($emailTo) {
+            $queueItem->setEmailTo($emailTo);
+        }
+
+        $this->entityManager->persist($queueItem);
+        $this->entityManager->flush();
+
+        return $queueItem;
+    }
+
+    /**
+     * Ajoute un fichier à la file d'attente pour génération de PDF
+     */
+    public function addFileToQueue(
+        string $filePath,
+        string $originalFilename,
+        UserInterface $user,
+        ?string $emailTo = null
+    ): PdfGenerationQueue {
+        // Vérifier si l'utilisateur peut générer un nouveau PDF
+        if (!$this->canUserGeneratePdf($user)) {
+            throw new \Exception("Limite d'abonnement atteinte. Impossible de générer plus de PDF.");
+        }
+
+        $queueItem = new PdfGenerationQueue();
+        $queueItem->setSourceFilePath($filePath);
+        $queueItem->setOriginalFilename($originalFilename);
+        $queueItem->setSourceType(PdfGenerationQueue::SOURCE_TYPE_FILE);
         $queueItem->setStatus('pending');
         $queueItem->setCreatedAt(new \DateTimeImmutable());
         $queueItem->setUser($user);

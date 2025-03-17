@@ -4,6 +4,8 @@
 
 namespace App\Command;
 
+use App\Entity\File;
+use App\Entity\PdfGenerationQueue;
 use App\Service\GotenbergService;
 use App\Service\PdfEmailService;
 use App\Service\PdfQueueService;
@@ -15,7 +17,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
-use App\Entity\File;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -108,11 +109,45 @@ class HandlePdfQueueCommand extends Command
 
                 $io->note('Generating PDF to: ' . $filePath);
 
-                // Use the Gotenberg service to generate the PDF and save it
-                $pdfContent = $this->gotenbergService->generatePdfFromUrlToFile($queueItem->getUrl(), $filePath);
+                $result = false;
+
+                // Traiter différemment selon le type de source
+                if ($queueItem->getSourceType() === PdfGenerationQueue::SOURCE_TYPE_URL) {
+                    // Génération de PDF à partir d'une URL
+                    $io->note('Processing URL: ' . $queueItem->getUrl());
+                    $result = $this->gotenbergService->generatePdfFromUrlToFile(
+                        $queueItem->getUrl(),
+                        $filePath,
+                        $queueItem->getUser()
+                    );
+                } elseif ($queueItem->getSourceType() === PdfGenerationQueue::SOURCE_TYPE_FILE) {
+                    // Génération de PDF à partir d'un fichier
+                    $sourceFilePath = $queueItem->getSourceFilePath();
+                    $io->note('Processing file: ' . $sourceFilePath);
+
+                    if (!file_exists($sourceFilePath)) {
+                        $io->error('Source file does not exist: ' . $sourceFilePath);
+                        $this->pdfQueueService->markAsFailed($queueItem);
+                        $failCount++;
+                        continue;
+                    }
+
+                    $result = $this->gotenbergService->generatePdfFromFile(
+                        $sourceFilePath,
+                        $filePath,
+                        $queueItem->getOriginalFilename() ?: basename($sourceFilePath),
+                        $queueItem->getUser()
+                    );
+
+                    // Nettoyer le fichier source après conversion
+                    if (file_exists($sourceFilePath)) {
+                        unlink($sourceFilePath);
+                        $io->note('Deleted source file after processing: ' . $sourceFilePath);
+                    }
+                }
 
                 // If PDF generation was successful
-                if ($pdfContent) {
+                if ($result) {
                     $io->note('PDF generation successful');
 
                     // Create a File entity and save to database
@@ -125,11 +160,15 @@ class HandlePdfQueueCommand extends Command
                     // If email is specified, send the PDF by email
                     if ($queueItem->getEmailTo()) {
                         $io->note('Sending email to: ' . $queueItem->getEmailTo());
-                        $this->pdfEmailService->sendPdfByEmail(
+                        $emailResult = $this->pdfEmailService->sendPdfByEmail(
                             $queueItem->getEmailTo(),
                             $filePath,
                             $filename
                         );
+
+                        if (!$emailResult) {
+                            $io->warning('Email sending failed to: ' . $queueItem->getEmailTo());
+                        }
                     }
 
                     // Mark queue item as completed
