@@ -8,99 +8,213 @@
         <!-- Header -->
         <div>
             <h1 class="text-3xl font-bold text-dark-900">Générer un PDF</h1>
-            <p class="text-dark-500 mt-2">Convertissez n'importe quelle page web en document PDF de qualité professionnelle</p>
+            <p class="text-dark-500 mt-2">Convertissez n'importe quelle page web ou fichier en document PDF de qualité professionnelle</p>
         </div>
         
         <!-- Form Card -->
         <div class="bg-white rounded-2xl p-8 shadow-sm border border-dark-100/10">
-            <div class="mb-6">
-                <h2 class="text-xl font-semibold text-dark-900 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-primary-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
-                    </svg>
-                    Entrez l'URL de la page web
-                </h2>
-                <p class="text-dark-500 text-sm mt-1">Assurez-vous que l'URL est complète et commence par http:// ou https://</p>
-            </div>
-            
-            {{ form_start(form, {'attr': {'class': 'space-y-6', 'target': '_blank', 'data-turbo': 'false'}}) }}
-                <div>
-                    {{ form_label(form.url, 'URL de la page', {'label_attr': {'class': 'block text-sm font-medium text-dark-700 mb-1.5'}}) }}
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-                            </svg>
+            <!-- Utilisez un seul x-data qui sera partagé pour tous les éléments -->
+            <div x-data="{ activeTab: 'url' }">
+                <!-- Tabs pour choisir entre URL et fichier -->
+                <div class="mb-6 border-b border-dark-200">
+                    <div class="flex -mb-px">
+                        <button 
+                            @click="activeTab = 'url'" 
+                            :class="{'border-b-2 border-primary-600 text-primary-600': activeTab === 'url', 'text-dark-500': activeTab !== 'url'}"
+                            class="px-4 py-2 font-medium text-sm focus:outline-none">
+                            Convertir une URL
+                        </button>
+                        <button 
+                            @click="activeTab = 'file'" 
+                            :class="{'border-b-2 border-primary-600 text-primary-600': activeTab === 'file', 'text-dark-500': activeTab !== 'file'}"
+                            class="px-4 py-2 font-medium text-sm focus:outline-none">
+                            Télécharger un fichier
+                        </button>
+                    </div>
+                </div>
+                
+                {{ form_start(form, {'attr': {'class': 'space-y-6', 'data-turbo': 'false'}}) }}
+                    <!-- URL Section -->
+                    <div x-show="activeTab === 'url'" class="mb-6">
+                        <h2 class="text-lg font-semibold text-dark-900 mb-3">Entrez l'URL de la page web</h2>
+                        <div>
+                            {{ form_label(form.url, 'URL de la page', {'label_attr': {'class': 'block text-sm font-medium text-dark-700 mb-1.5'}}) }}
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                {{ form_widget(form.url, {'attr': {
+                                    'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
+                                    'placeholder': 'https://exemple.com',
+                                    '@focus': 'activeTab = "url"'
+                                }}) }}
+                            </div>
+                            <p class="text-xs text-dark-500 mt-1">Exemple: https://www.example.com/page</p>
                         </div>
-                        {{ form_widget(form.url, {'attr': {
-                            'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
-                            'placeholder': 'https://exemple.com'
+                    </div>
+                    
+                    <!-- File Upload Section -->
+                    <div x-show="activeTab === 'file'" class="mb-6">
+                        <h2 class="text-lg font-semibold text-dark-900 mb-3">Téléchargez un fichier à convertir</h2>
+                        <div
+                            id="drop-zone" 
+                            class="border-2 border-dashed border-dark-200 bg-dark-50 rounded-xl p-8 text-center cursor-pointer transition-colors"
+                            @click="document.getElementById('{{ form.uploadedFile.vars.id }}').click()"
+                            @dragover.prevent="$el.classList.add('border-primary-500', 'bg-primary-50')"
+                            @dragleave.prevent="$el.classList.remove('border-primary-500', 'bg-primary-50')"
+                            @drop.prevent="handleFileDrop($event); activeTab = 'file'"
+                        >
+                            <div class="space-y-3">
+                                <svg class="mx-auto h-12 w-12 text-dark-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <div class="text-sm text-dark-600">
+                                    <span class="font-medium text-primary-600">Cliquez pour choisir</span> ou glissez-déposez
+                                </div>
+                                <p class="text-xs text-dark-400">
+                                    Formats supportés : HTML, TXT, JPG, PNG, PDF, DOC, DOCX
+                                </p>
+                            </div>
+                            {{ form_widget(form.uploadedFile, {'attr': {
+                                'class': 'hidden',
+                                '@change': 'handleFileSelect($event); activeTab = "file"'
+                            }}) }}
+                        </div>
+                        {{ form_errors(form.uploadedFile, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
+                    </div>
+
+                    <!-- Prévisualisation du fichier -->
+                    <div id="file-preview" class="hidden p-4 bg-dark-50 rounded-lg border border-dark-200 mb-4">
+                        <!-- Contenu dynamique via JavaScript -->
+                    </div>
+
+                    <!-- Options de livraison du PDF -->
+                    <div class="bg-dark-50 rounded-xl p-5 border border-dark-100/20">
+                        <h3 class="text-lg font-medium text-dark-900 mb-3">Options de livraison</h3>
+                        
+                        {% if app.user %}
+                            <!-- Utilisateur connecté - checkbox pour envoyer par email -->
+                            <div class="flex items-center space-x-2">
+                                {{ form_widget(form.sendByEmail, {
+                                    'attr': {
+                                        'class': 'h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500',
+                                        'checked': 'checked'
+                                    }
+                                }) }}
+                                <label for="{{ form.sendByEmail.vars.id }}" class="text-sm text-dark-700">
+                                    Envoyer à mon adresse email ({{ app.user.email }})
+                                </label>
+                            </div>
+                            <!-- Champ email masqué avec valeur préremplie -->
+                            <div style="display: none;">
+                                {{ form_widget(form.emailAddress, {
+                                    'attr': {
+                                        'value': app.user.email
+                                    }
+                                }) }}
+                            </div>
+                        {% else %}
+                            <!-- Utilisateur non connecté - checkbox avec affichage conditionnel du champ email -->
+                            <div x-data="{ showEmailField: true }">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    {{ form_widget(form.sendByEmail, {
+                                        'attr': {
+                                            'class': 'h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500',
+                                            '@change': 'showEmailField = $event.target.checked',
+                                            'checked': 'checked'
+                                        }
+                                    }) }}
+                                    <label for="{{ form.sendByEmail.vars.id }}" class="text-sm text-dark-700">
+                                        Recevoir le PDF par email
+                                    </label>
+                                </div>
+                                
+                                <div x-show="showEmailField" class="mt-3">
+                                    <label for="{{ form.emailAddress.vars.id }}" class="block text-sm font-medium text-dark-700 mb-1.5">
+                                        Adresse email
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                            </svg>
+                                        </div>
+                                        {{ form_widget(form.emailAddress, {
+                                            'attr': {
+                                                'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
+                                                'placeholder': 'votre@email.com',
+                                                'x-bind:required': 'showEmailField'
+                                            }
+                                        }) }}
+                                    </div>
+                                    {{ form_errors(form.emailAddress, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mt-3 text-sm text-dark-500 flex items-start gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                            </svg>
+                            <span>Les fichiers téléchargés sont convertis immédiatement. Les URLs sont traitées toutes les 30 minutes.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        {{ form_widget(form.submit, {'attr': {
+                            'class': 'inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all'
                         }}) }}
                     </div>
-                    {{ form_errors(form.url, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
-                </div>
-                <div>
-                    {{ form_widget(form.submit, {'attr': {
-                        'class': 'inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all'
-                    }}) }}
-                </div>
-            {{ form_end(form) }}
+                {{ form_end(form) }}
+            </div>
         </div>
         
-        <!-- Tips in Bento-style grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100/10">
-                <h3 class="flex items-center text-dark-900 font-medium mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
-                    </svg>
-                    Conseils
-                </h3>
+        <!-- Format Support Card -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100/10">
+            <h3 class="font-semibold text-dark-900 mb-4">Formats supportés</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="flex flex-col items-center p-3 bg-dark-50 rounded-lg border border-dark-200/40">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <span class="text-sm font-medium text-dark-900">Pages web</span>
+                    <span class="text-xs text-dark-500">URLs</span>
+                </div>
                 
-                <ul class="space-y-3 text-sm text-dark-600">
-                    <li class="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                <div class="flex flex-col items-center p-3 bg-dark-50 rounded-lg border border-dark-200/40">
+                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
                         </svg>
-                        <span>Utilisez des URLs complètes commençant par http:// ou https://</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                        <span>Vérifiez que la page est accessible publiquement</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                        <span>Patientez quelques secondes pour la génération</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-dark-100/10">
-                <h3 class="flex items-center text-dark-900 font-medium mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-600 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                    </svg>
-                    Problèmes courants
-                </h3>
+                    </div>
+                    <span class="text-sm font-medium text-dark-900">Images</span>
+                    <span class="text-xs text-dark-500">JPG, PNG, GIF</span>
+                </div>
                 
-                <ul class="space-y-3 text-sm text-dark-600">
-                    <li class="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                <div class="flex flex-col items-center p-3 bg-dark-50 rounded-lg border border-dark-200/40">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
-                        <span>Les pages avec authentification peuvent ne pas s'afficher correctement</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </div>
+                    <span class="text-sm font-medium text-dark-900">HTML</span>
+                    <span class="text-xs text-dark-500">Fichiers .html</span>
+                </div>
+                
+                <div class="flex flex-col items-center p-3 bg-dark-50 rounded-lg border border-dark-200/40">
+                    <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-2">
+                        <svg class="w-6 h-6 text-amber-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />
                         </svg>
-                        <span>Certains sites web peuvent bloquer la conversion en PDF</span>
-                    </li>
-                </ul>
+                    </div>
+                    <span class="text-sm font-medium text-dark-900">Documents</span>
+                    <span class="text-xs text-dark-500">DOC, PDF, TXT</span>
+                </div>
             </div>
         </div>
         
@@ -144,4 +258,130 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Variables globales
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.querySelector('input[type="file"]');
+    const filePreview = document.getElementById('file-preview');
+    const urlInput = document.querySelector('input[type="url"]');
+    
+    // Alpine.js functions
+    window.handleFileDrop = function(event) {
+        event.preventDefault();
+        const dt = event.dataTransfer;
+        const files = dt.files;
+        
+        if (files && files.length) {
+            // Mettre à jour l'input file
+            fileInput.files = files;
+            updateFilePreview(files[0]);
+            
+            // Vider l'URL si un fichier est sélectionné
+            if (urlInput) urlInput.value = '';
+            
+            // Restaurer le style du drop zone
+            dropZone.classList.remove('border-primary-500', 'bg-primary-50');
+            dropZone.classList.add('border-dark-200', 'bg-dark-50');
+        }
+    };
+    
+    window.handleFileSelect = function(event) {
+        const files = event.target.files;
+        if (files && files.length) {
+            updateFilePreview(files[0]);
+            
+            // Vider l'URL si un fichier est sélectionné
+            if (urlInput) urlInput.value = '';
+        }
+    };
+    
+    // Fonction pour mettre à jour la prévisualisation
+    function updateFilePreview(file) {
+        if (!filePreview) return;
+        
+        // Vider et afficher la prévisualisation
+        filePreview.innerHTML = '';
+        filePreview.classList.remove('hidden');
+        
+        // Déterminer l'icône et les couleurs selon le type de fichier
+        const fileExt = file.name.split('.').pop().toLowerCase();
+        let iconType = 'document';
+        let bgColor = 'bg-blue-100';
+        let textColor = 'text-blue-600';
+        
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
+            iconType = 'image';
+            bgColor = 'bg-green-100';
+            textColor = 'text-green-600';
+        } else if (['html', 'htm'].includes(fileExt)) {
+            iconType = 'code';
+            bgColor = 'bg-purple-100';
+            textColor = 'text-purple-600';
+        } else if (fileExt === 'pdf') {
+            iconType = 'pdf';
+            bgColor = 'bg-red-100';
+            textColor = 'text-red-600';
+        } else if (['doc', 'docx'].includes(fileExt)) {
+            iconType = 'document';
+            bgColor = 'bg-blue-100';
+            textColor = 'text-blue-600';
+        }
+        
+        // Créer la prévisualisation
+        filePreview.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-lg ${bgColor} flex items-center justify-center">
+                        <svg class="w-6 h-6 ${textColor}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            ${getIconSvgPath(iconType)}
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-dark-900 truncate max-w-xs">${file.name}</p>
+                        <p class="text-xs text-dark-500">${formatFileSize(file.size)}</p>
+                    </div>
+                </div>
+                <button type="button" id="remove-file" class="p-1.5 hover:bg-dark-100 rounded-full">
+                    <svg class="w-5 h-5 text-dark-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        // Ajouter un événement pour supprimer le fichier
+        document.getElementById('remove-file').addEventListener('click', function() {
+            fileInput.value = '';
+            filePreview.classList.add('hidden');
+            filePreview.innerHTML = '';
+        });
+    }
+    
+    // Fonction pour obtenir le chemin SVG de l'icône
+    function getIconSvgPath(type) {
+        const iconPaths = {
+            'document': '<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />',
+            'image': '<path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />',
+            'code': '<path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />',
+            'pdf': '<path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd" />'
+        };
+        
+        return iconPaths[type] || iconPaths['document'];
+    }
+    
+    // Fonction pour formater la taille du fichier
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
 {% endblock %}

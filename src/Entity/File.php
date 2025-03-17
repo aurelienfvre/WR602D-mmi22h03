@@ -16,11 +16,13 @@ class File
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column]
+    #[ORM\Column(name: "created_at")]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'files')]
     private ?User $user = null;
+
+    
 
     public function getId(): ?int
     {
@@ -62,4 +64,5 @@ class File
 
         return $this;
     }
+    
 }
