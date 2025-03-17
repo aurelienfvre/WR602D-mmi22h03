@@ -50,9 +50,11 @@ class PdfEmailService
 
             $this->log('info', "Envoi d'email avec pièce jointe à {$emailTo}, fichier: {$pdfPath}");
             $this->mailer->send($email);
+            $this->log('info', "Email envoyé avec succès à {$emailTo}");
             return true;
         } catch (\Exception $e) {
             $this->log('error', "Erreur lors de l'envoi du mail avec pièce jointe: " . $e->getMessage());
+            $this->log('error', $e->getTraceAsString());
             return false;
         }
     }

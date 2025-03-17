@@ -8,13 +8,22 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: PdfGenerationQueueRepository::class)]
 class PdfGenerationQueue
 {
+    public const SOURCE_TYPE_URL = 'url';
+    public const SOURCE_TYPE_FILE = 'file';
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $url = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $sourceFilePath = null;
+    
+    #[ORM\Column(length: 50)]
+    private ?string $sourceType = null;
 
     #[ORM\Column(length: 50)]
     private ?string $status = null;
@@ -30,6 +39,9 @@ class PdfGenerationQueue
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $filePath = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $originalFilename = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -45,9 +57,33 @@ class PdfGenerationQueue
         return $this->url;
     }
 
-    public function setUrl(string $url): static
+    public function setUrl(?string $url): static
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    public function getSourceFilePath(): ?string
+    {
+        return $this->sourceFilePath;
+    }
+
+    public function setSourceFilePath(?string $sourceFilePath): static
+    {
+        $this->sourceFilePath = $sourceFilePath;
+
+        return $this;
+    }
+
+    public function getSourceType(): ?string
+    {
+        return $this->sourceType;
+    }
+
+    public function setSourceType(string $sourceType): static
+    {
+        $this->sourceType = $sourceType;
 
         return $this;
     }
@@ -108,6 +144,18 @@ class PdfGenerationQueue
     public function setFilePath(?string $filePath): static
     {
         $this->filePath = $filePath;
+
+        return $this;
+    }
+
+    public function getOriginalFilename(): ?string
+    {
+        return $this->originalFilename;
+    }
+
+    public function setOriginalFilename(?string $originalFilename): static
+    {
+        $this->originalFilename = $originalFilename;
 
         return $this;
     }

@@ -12,6 +12,9 @@ use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormEvent;
 
 class GeneratePdfType extends AbstractType
 {
@@ -43,7 +46,8 @@ class GeneratePdfType extends AbstractType
                             'application/msword',
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         ],
-                        'mimeTypesMessage' => 'Veuillez télécharger un fichier valide (HTML, texte, image, PDF, Word)',
+                        'mimeTypesMessage' => 'Veuillez télécharger un fichier de type HTML,
+                        texte, image (JPEG, PNG, GIF), PDF ou Word (.doc, .docx).',
                     ])
                 ],
                 'attr' => [
@@ -65,14 +69,30 @@ class GeneratePdfType extends AbstractType
             ])
             ->add('submit', SubmitType::class, [
                 'label' => 'Générer le PDF',
-            ])
-        ;
+            ]);
+            
+        // Ajouter un écouteur d'événement pour valider le formulaire
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) {
+            $form = $event->getForm();
+            $data = $form->getData();
+            
+            // Vérifier si à la fois l'URL et le fichier uploadé sont vides
+            if (empty($data['url']) && !$form->get('uploadedFile')->getData()) {
+                $form->addError(new FormError('Veuillez soit entrer une URL, soit télécharger un fichier.'));
+            }
+            
+            // Vérifier si l'email est requis mais non renseigné
+            if (isset($data['sendByEmail']) && $data['sendByEmail'] && empty($data['emailAddress'])) {
+                $form->get('emailAddress')->addError(new FormError('L\'adresse email est requise lorsque
+                 l\'option d\'envoi par email est activée.'));
+            }
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            // Configure your form options here
+            'data_class' => null,
         ]);
     }
 }

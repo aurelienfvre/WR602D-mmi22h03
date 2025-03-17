@@ -81,22 +81,13 @@ class GotenbergService
 
     /**
      * Génère un PDF à partir d'un fichier téléchargé
-     */
-    /**
      *
-     *  * @param string $filePath Chemin du fichier source
- * @param string $outputPath Chemin où enregistrer le PDF
- * @param string $originalFilename Nom original du fichier
- * @param UserInterface|null $user Utilisateur
- * @return bool Succès ou échec
- * Génère un PDF à partir d'un fichier téléchargé
- *
- * @param string $filePath Chemin du fichier source
- * @param string $outputPath Chemin où enregistrer le PDF
- * @param string $originalFilename Nom original du fichier
- * @param UserInterface|null $user Utilisateur
- * @return bool Succès ou échec
- */
+     * @param string $filePath Chemin du fichier source
+     * @param string $outputPath Chemin où enregistrer le PDF
+     * @param string $originalFilename Nom original du fichier
+     * @param UserInterface|null $user Utilisateur
+     * @return bool Succès ou échec
+     */
     public function generatePdfFromFile(
         string $filePath,
         string $outputPath,
@@ -113,81 +104,177 @@ class GotenbergService
             // Déterminer le type MIME
             $finfo = new \finfo(FILEINFO_MIME_TYPE);
             $mimeType = $finfo->file($filePath);
-        
+            
             error_log("Génération de PDF à partir du fichier: $filePath (type: $mimeType)");
             error_log("Chemin de sortie: $outputPath");
-        
+            
+            // Obtenir l'extension du fichier
+            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+            
             // Traitement différent selon le type de fichier
             if (strpos($mimeType, 'text/html') === 0) {
                 // Si c'est un fichier HTML, utiliser la conversion HTML
-                $htmlContent = file_get_contents($filePath);
+                // Pour HTML, Gotenberg s'attend à recevoir un fichier nommé "index.html"
+                $tempDir = sys_get_temp_dir() . '/' . uniqid('html_convert_');
+                mkdir($tempDir, 0777, true);
+                
+                // Copier le fichier HTML en tant que index.html
+                $tempFile = $tempDir . '/index.html';
+                copy($filePath, $tempFile);
+                
                 $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/html', [
-                'headers' => [
-                    'Content-Type' => 'multipart/form-data',
-                ],
-                'body' => [
-                    'files' => fopen($filePath, 'r'),
-                ],
+                    'headers' => [
+                        'Content-Type' => 'multipart/form-data',
+                    ],
+                    'body' => [
+                        'files' => [
+                            'index.html' => fopen($tempFile, 'r'),
+                        ],
+                    ],
                 ]);
+                
+                // Nettoyer le répertoire temporaire
+                if (file_exists($tempFile)) {
+                    unlink($tempFile);
+                }
+                if (file_exists($tempDir)) {
+                    rmdir($tempDir);
+                }
             } elseif (strpos($mimeType, 'image/') === 0) {
                 // Pour les images
-                $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/image', [
-                'headers' => [
-                    'Content-Type' => 'multipart/form-data',
-                ],
-                'body' => [
-                    'files' => fopen($filePath, 'r'),
-                ],
+                $imageName = basename($filePath);
+                
+                // Créer un fichier HTML qui inclut l'image
+                $tempDir = sys_get_temp_dir() . '/' . uniqid('img_convert_');
+                mkdir($tempDir, 0777, true);
+                
+                // Copier l'image dans le répertoire temporaire
+                $tempImagePath = $tempDir . '/' . $imageName;
+                copy($filePath, $tempImagePath);
+                
+                // Créer un fichier HTML qui inclut l'image
+                $htmlContent = "
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='UTF-8'>
+                    <title>Image Conversion</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            min-height: 100vh;
+                        }
+                        img {
+                            max-width: 100%;
+                            height: auto;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <img src='$imageName' alt='Image'>
+                </body>
+                </html>";
+                
+                $tempHtmlPath = $tempDir . '/index.html';
+                file_put_contents($tempHtmlPath, $htmlContent);
+                
+                $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/html', [
+                    'headers' => [
+                        'Content-Type' => 'multipart/form-data',
+                    ],
+                    'body' => [
+                        'files' => [
+                            'index.html' => fopen($tempHtmlPath, 'r'),
+                            $imageName => fopen($tempImagePath, 'r'),
+                        ],
+                    ],
                 ]);
+                
+                // Nettoyer le répertoire temporaire
+                if (file_exists($tempHtmlPath)) {
+                    unlink($tempHtmlPath);
+                }
+                if (file_exists($tempImagePath)) {
+                    unlink($tempImagePath);
+                }
+                if (file_exists($tempDir)) {
+                    rmdir($tempDir);
+                }
             } elseif ($mimeType === 'application/pdf') {
                 // Si c'est déjà un PDF, le copier simplement
                 if (copy($filePath, $outputPath)) {
                     return true;
                 }
                 return false;
-            } elseif (in_array($mimeType, ['application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])) {
+            } elseif (in_array($mimeType, [
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ])) {
                 // Pour les documents Word
                 $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/libreoffice/convert', [
-                'headers' => [
-                    'Content-Type' => 'multipart/form-data',
-                ],
-                'body' => [
-                    'files' => fopen($filePath, 'r'),
-                ],
+                    'headers' => [
+                        'Content-Type' => 'multipart/form-data',
+                    ],
+                    'body' => [
+                        'files' => [
+                            'document.' . $extension => fopen($filePath, 'r'),
+                        ],
+                    ],
                 ]);
             } else {
                 // Fallback pour les autres types: essayer de les traiter comme du texte
+                $tempDir = sys_get_temp_dir() . '/' . uniqid('text_convert_');
+                mkdir($tempDir, 0777, true);
+                
+                // Copier le fichier dans le répertoire temporaire
+                $tempFile = $tempDir . '/document.md';
+                copy($filePath, $tempFile);
+                
                 $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/markdown', [
-                'headers' => [
-                    'Content-Type' => 'multipart/form-data',
-                ],
-                'body' => [
-                    'files' => fopen($filePath, 'r'),
-                ],
+                    'headers' => [
+                        'Content-Type' => 'multipart/form-data',
+                    ],
+                    'body' => [
+                        'files' => [
+                            'document.md' => fopen($tempFile, 'r'),
+                        ],
+                    ],
                 ]);
+                
+                // Nettoyer le répertoire temporaire
+                if (file_exists($tempFile)) {
+                    unlink($tempFile);
+                }
+                if (file_exists($tempDir)) {
+                    rmdir($tempDir);
+                }
             }
-        
+            
             // Traiter la réponse
             if (isset($response)) {
                 if ($response->getStatusCode() !== 200) {
                     error_log("Erreur Gotenberg: " . $response->getStatusCode());
+                    error_log("Message d'erreur: " . $response->getContent(false));
                     return false;
                 }
-            
+                
                 // Sauvegarder le fichier
                 $pdfContent = $response->getContent();
                 $bytesWritten = file_put_contents($outputPath, $pdfContent);
-            
+                
                 if ($bytesWritten === false) {
                     error_log("Échec de l'écriture du fichier: $outputPath");
                     return false;
                 }
-            
+                
                 error_log("PDF généré avec succès: $outputPath ($bytesWritten octets)");
                 return true;
             }
-        
+            
             return false;
         } catch (\Exception $e) {
             error_log("Exception lors de la génération du PDF: " . $e->getMessage());
@@ -195,16 +282,20 @@ class GotenbergService
             return false;
         }
     }
+
     public function generatePdfFromHtml(string $htmlContent, ?UserInterface $user = null): Response
     {
         // Vérifier si l'utilisateur peut générer plus de PDF
         if ($user && !$this->canUserGeneratePdf($user)) {
-            return new Response("Limite quotidienne de génération 
-            de PDF atteinte. Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
+            return new Response("Limite quotidienne de génération de PDF atteinte. "
+                . "Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
         }
 
+        // Création d'un répertoire temporaire
+        $tmpDir = sys_get_temp_dir() . '/' . uniqid('html_');
+        mkdir($tmpDir, 0777, true);
+        
         // Création d'un fichier temporaire nommé `index.html`
-        $tmpDir = sys_get_temp_dir();
         $tmpFile = $tmpDir . '/index.html';
         file_put_contents($tmpFile, $htmlContent);
 
@@ -214,16 +305,23 @@ class GotenbergService
                     'Content-Type' => 'multipart/form-data',
                 ],
                 'body' => [
-                    'files' => fopen($tmpFile, 'r'), // Envoi du fichier en tant que "index.html"
+                    'files' => [
+                        'index.html' => fopen($tmpFile, 'r'),
+                    ],
                 ],
             ]);
 
             // Supprimer le fichier temporaire après l'envoi
-            unlink($tmpFile);
+            if (file_exists($tmpFile)) {
+                unlink($tmpFile);
+            }
+            if (file_exists($tmpDir)) {
+                rmdir($tmpDir);
+            }
 
             if ($response->getStatusCode() !== 200) {
-                return new Response("Erreur lors de la génération du PDF : " .
-                $response->getContent(false), $response->getStatusCode());
+                return new Response("Erreur lors de la génération du PDF : "
+                    . $response->getContent(false), $response->getStatusCode());
             }
 
             // Enregistrer le fichier si un utilisateur est fourni
@@ -252,8 +350,8 @@ class GotenbergService
     {
         // Vérifier si l'utilisateur peut générer plus de PDF
         if ($user && !$this->canUserGeneratePdf($user)) {
-            return new Response("Limite quotidienne de génération de PDF atteinte. 
-            Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
+            return new Response("Limite quotidienne de génération de PDF atteinte. "
+                . "Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
         }
 
         try {
@@ -272,8 +370,8 @@ class GotenbergService
             error_log("Requête envoyée. Code de statut : " . $response->getStatusCode());
 
             if ($response->getStatusCode() !== 200) {
-                return new Response("Erreur lors de la génération du PDF : " .
-                    $response->getContent(false), $response->getStatusCode());
+                return new Response("Erreur lors de la génération du PDF : "
+                    . $response->getContent(false), $response->getStatusCode());
             }
 
             // Enregistrer le fichier si un utilisateur est fourni
@@ -317,11 +415,17 @@ class GotenbergService
             ]);
 
             if ($response->getStatusCode() !== 200) {
+                error_log("Erreur lors de la génération du PDF depuis URL: " . $response->getStatusCode());
                 return false;
             }
 
             // Sauvegarder le contenu dans un fichier
-            file_put_contents($filePath, $response->getContent());
+            $bytesWritten = file_put_contents($filePath, $response->getContent());
+            
+            if ($bytesWritten === false) {
+                error_log("Échec de l'écriture du fichier PDF: $filePath");
+                return false;
+            }
             
             // Enregistrer le fichier si un utilisateur est fourni
             if ($user) {
