@@ -51,8 +51,8 @@ jobs:
         run: vendor/bin/phpunit --coverage-text
       - name: Run PHP_CodeSniffer with automatic fixing
         run: |
-          vendor/bin/phpcbf --standard=PSR12 src/ || true
-          vendor/bin/phpcs --standard=PSR12 src/
+          vendor/bin/phpcbf --standard=PSR2 src/ || true
+          vendor/bin/phpcs --standard=PSR2 src/
       - name: Run PHPStan
         run: vendor/bin/phpstan analyze src/ --level=5 || echo "PHPStan issues need to be fixed manually"
       - name: Run PHPMD
