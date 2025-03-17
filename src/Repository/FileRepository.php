@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\File;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use DateTimeInterface;
 
 /**
  * @extends ServiceEntityRepository<File>
@@ -16,28 +17,65 @@ class FileRepository extends ServiceEntityRepository
         parent::__construct($registry, File::class);
     }
 
-//    /**
-//     * @return File[] Returns an array of File objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('f')
-//            ->andWhere('f.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('f.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * Compte les fichiers PDF générés par un utilisateur à une date donnée
+     * Cette méthode est utilisée pour vérifier si l'utilisateur a atteint sa limite quotidienne
+     */
+    public function countFileGeneratedByUserOnDate(
+        int $userId,
+        DateTimeInterface $startOfDay,
+        DateTimeInterface $endOfDay
+    ): int {
+        return (int) $this->createQueryBuilder('f')
+            ->select('COUNT(f.id)')
+            ->where('f.user = :userId')
+            ->andWhere('f.createdAt BETWEEN :startOfDay AND :endOfDay')
+            ->setParameter('userId', $userId)
+            ->setParameter('startOfDay', $startOfDay)
+            ->setParameter('endOfDay', $endOfDay)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
-//    public function findOneBySomeField($value): ?File
-//    {
-//        return $this->createQueryBuilder('f')
-//            ->andWhere('f.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Compte le nombre total de fichiers PDF d'un utilisateur
+     */
+    public function countUserFiles(int $userId): int
+    {
+        return (int) $this->createQueryBuilder('f')
+            ->select('COUNT(f.id)')
+            ->where('f.user = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Récupère tous les fichiers d'un utilisateur, triés par date
+     */
+    public function findUserFilesOrderedByDate(int $userId): array
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.user = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('f.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+    /**
+     * Récupère les fichiers accessibles en fonction de la limite d'abonnement
+     * et indique lesquels sont verrouillés
+     */
+    public function findUserFilesWithLockStatus(int $userId, int $maxPdfLimit): array
+    {
+        $allFiles = $this->findUserFilesOrderedByDate($userId);
+        $result = [];
+        foreach ($allFiles as $index => $file) {
+            $result[] = [
+                'file' => $file,
+                'locked' => $index >= $maxPdfLimit
+            ];
+        }
+        return $result;
+    }
 }

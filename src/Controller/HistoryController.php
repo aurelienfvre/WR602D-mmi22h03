@@ -14,10 +14,30 @@ class HistoryController extends AbstractController
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        $files = $fileRepository->findBy(['user' => $this->getUser()], ['created_at' => 'DESC']);
+        $user = $this->getUser();
+        $subscription = $user->getSubscription();
+        $maxPdf = $subscription ? $subscription->getMaxPdf() : 0;
+
+        // Récupérer tous les fichiers avec leur statut de verrouillage
+        $filesWithStatus = $fileRepository->findUserFilesWithLockStatus($user->getId(), $maxPdf);
+
+        // Compter le nombre total de fichiers
+        $totalFiles = count($filesWithStatus);
+
+        // Calculer le nombre de PDF restants
+        $remainingPdfs = $maxPdf - $totalFiles;
+
+        // Compter le nombre de fichiers verrouillés
+        $lockedFiles = array_reduce($filesWithStatus, function ($count, $item) {
+            return $count + ($item['locked'] ? 1 : 0);
+        }, 0);
 
         return $this->render('history/index.html.twig', [
-            'files' => $files,
+            'filesWithStatus' => $filesWithStatus,
+            'totalFiles' => $totalFiles,
+            'remainingPdfs' => $remainingPdfs,
+            'maxPdf' => $maxPdf,
+            'lockedFiles' => $lockedFiles,
         ]);
     }
 }
