@@ -28,7 +28,7 @@ class HistoryController extends AbstractController
         $remainingPdfs = $maxPdf - $totalFiles;
         
         // Compter le nombre de fichiers verrouillés
-        $lockedFiles = array_reduce($filesWithStatus, function($count, $item) {
+        $lockedFiles = array_reduce($filesWithStatus, function ($count, $item) {
             return $count + ($item['locked'] ? 1 : 0);
         }, 0);
         

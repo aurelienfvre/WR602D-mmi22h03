@@ -34,7 +34,8 @@ class FileController extends AbstractController
         
         // Si le fichier est verrouillé (en-dehors de la limite d'abonnement)
         if ($position !== false && $position >= $maxPdf) {
-            $this->addFlash('error', 'Ce fichier est verrouillé dans votre abonnement actuel. Veuillez mettre à niveau pour y accéder.');
+            $this->addFlash('error', 'Ce fichier est verrouillé dans votre abonnement actuel. 
+            Veuillez mettre à niveau pour y accéder.');
             return $this->redirectToRoute('subscription_change');
         }
 

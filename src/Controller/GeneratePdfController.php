@@ -42,7 +42,8 @@ final class GeneratePdfController extends AbstractController
         
         // Vérifier si l'utilisateur peut générer plus de PDF selon son abonnement
         if (!$this->pdfQueueService->canUserGeneratePdf($user)) {
-            $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. Veuillez mettre à niveau pour générer plus de PDF.');
+            $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. 
+            Veuillez mettre à niveau pour générer plus de PDF.');
             return $this->redirectToRoute('subscription_change');
         }
 
@@ -93,7 +94,12 @@ final class GeneratePdfController extends AbstractController
                     }
                     
                     // Convertir le fichier en PDF
-                    $result = $this->gotenbergService->generatePdfFromFile($filePath, $pdfPath, $originalFilename, $user);
+                    $result = $this->gotenbergService->generatePdfFromFile(
+                        $filePath,
+                        $pdfPath,
+                        $originalFilename,
+                        $user
+                    );
                     
                     // Supprimer le fichier temporaire
                     if (file_exists($filePath)) {
@@ -120,24 +126,23 @@ final class GeneratePdfController extends AbstractController
                     } else {
                         throw new \Exception("Erreur lors de la génération du PDF.");
                     }
-                } 
-                // Si une URL a été fournie
-                elseif (!empty($formData['url'])) {
+                } elseif (!empty($formData['url'])) {
                     // Ajouter à la file d'attente
                     $this->pdfQueueService->addToQueue($formData['url'], $user, $emailTo);
                     
                     // Rediriger avec un message
-                    $this->addFlash('success', 'Votre demande de génération de PDF a été placée en file d\'attente. Le document sera généré prochainement.');
+                    $this->addFlash('success', 'Votre demande de génération de PDF 
+                    a été placée en file d\'attente. Le document sera généré prochainement.');
                     
                     if ($emailTo) {
-                        $this->addFlash('info', 'Vous recevrez un email à ' . $emailTo . ' lorsque votre PDF sera prêt.');
+                        $this->addFlash('info', 'Vous recevrez un email à '
+                        . $emailTo . ' lorsque votre PDF sera prêt.');
                     } else {
                         $this->addFlash('info', 'Votre PDF sera disponible dans votre historique une fois généré.');
                     }
                     
                     return $this->redirectToRoute('history');
-                }
-                else {
+                } else {
                     $this->addFlash('error', 'Veuillez soit entrer une URL, soit télécharger un fichier.');
                 }
             } catch (\Exception $e) {

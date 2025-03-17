@@ -21,7 +21,8 @@ class FileRepository extends ServiceEntityRepository
      * Compte les fichiers PDF générés par un utilisateur à une date donnée
      * Cette méthode est utilisée pour vérifier si l'utilisateur a atteint sa limite quotidienne
      */
-    public function countFileGeneratedByUserOnDate(int $userId, DateTimeInterface $startOfDay, DateTimeInterface $endOfDay): int
+    public function countFileGeneratedByUserOnDate(int $userId, DateTimeInterface
+    $startOfDay, DateTimeInterface $endOfDay): int
     {
         return (int) $this->createQueryBuilder('f')
             ->select('COUNT(f.id)')
@@ -59,7 +60,6 @@ class FileRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-    
     /**
      * Récupère les fichiers accessibles en fonction de la limite d'abonnement
      * et indique lesquels sont verrouillés
@@ -68,14 +68,12 @@ class FileRepository extends ServiceEntityRepository
     {
         $allFiles = $this->findUserFilesOrderedByDate($userId);
         $result = [];
-        
         foreach ($allFiles as $index => $file) {
             $result[] = [
                 'file' => $file,
                 'locked' => $index >= $maxPdfLimit
             ];
         }
-        
         return $result;
     }
 }

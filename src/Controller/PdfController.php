@@ -29,7 +29,8 @@ final class PdfController extends AbstractController
         
         // Vérifier si l'utilisateur peut générer plus de PDF selon son abonnement
         if (!$this->pdfQueueService->canUserGeneratePdf($user)) {
-            $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. Veuillez mettre à niveau pour générer plus de PDF.');
+            $this->addFlash('error', 'Vous avez atteint la limite de votre abonnement. 
+            Veuillez mettre à niveau pour générer plus de PDF.');
             return $this->redirectToRoute('subscription_change');
         }
 

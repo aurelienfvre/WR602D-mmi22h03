@@ -20,7 +20,7 @@ class GotenbergService
     private EntityManagerInterface $entityManager;
 
     public function __construct(
-        HttpClientInterface $client, 
+        HttpClientInterface $client,
         string $gotenbergUrl,
         FileRepository $fileRepository,
         EntityManagerInterface $entityManager
@@ -83,122 +83,124 @@ class GotenbergService
      * Génère un PDF à partir d'un fichier téléchargé
      */
     /**
-     * 
+     *
      *  * @param string $filePath Chemin du fichier source
  * @param string $outputPath Chemin où enregistrer le PDF
  * @param string $originalFilename Nom original du fichier
  * @param UserInterface|null $user Utilisateur
  * @return bool Succès ou échec
  * Génère un PDF à partir d'un fichier téléchargé
- * 
+ *
  * @param string $filePath Chemin du fichier source
  * @param string $outputPath Chemin où enregistrer le PDF
  * @param string $originalFilename Nom original du fichier
  * @param UserInterface|null $user Utilisateur
  * @return bool Succès ou échec
  */
-public function generatePdfFromFile(string $filePath, string $outputPath, string $originalFilename, ?UserInterface $user = null): bool
-{
-    // Vérifier si l'utilisateur peut générer plus de PDF
-    if ($user && !$this->canUserGeneratePdf($user)) {
-        error_log("Limite quotidienne de génération de PDF atteinte pour l'utilisateur " . $user->getId());
-        return false;
-    }
-
-    try {
-        // Déterminer le type MIME
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
-        $mimeType = $finfo->file($filePath);
-        
-        error_log("Génération de PDF à partir du fichier: $filePath (type: $mimeType)");
-        error_log("Chemin de sortie: $outputPath");
-        
-        // Traitement différent selon le type de fichier
-        if (strpos($mimeType, 'text/html') === 0) {
-            // Si c'est un fichier HTML, utiliser la conversion HTML
-            $htmlContent = file_get_contents($filePath);
-            $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/html', [
-                'headers' => [
-                    'Content-Type' => 'multipart/form-data',
-                ],
-                'body' => [
-                    'files' => fopen($filePath, 'r'),
-                ],
-            ]);
-        } 
-        elseif (strpos($mimeType, 'image/') === 0) {
-            // Pour les images
-            $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/image', [
-                'headers' => [
-                    'Content-Type' => 'multipart/form-data',
-                ],
-                'body' => [
-                    'files' => fopen($filePath, 'r'),
-                ],
-            ]);
-        }
-        elseif ($mimeType === 'application/pdf') {
-            // Si c'est déjà un PDF, le copier simplement
-            if (copy($filePath, $outputPath)) {
-                return true;
-            }
+    public function generatePdfFromFile(
+        string $filePath,
+        string $outputPath,
+        string $originalFilename,
+        ?UserInterface $user = null
+    ): bool {
+        // Vérifier si l'utilisateur peut générer plus de PDF
+        if ($user && !$this->canUserGeneratePdf($user)) {
+            error_log("Limite quotidienne de génération de PDF atteinte pour l'utilisateur " . $user->getId());
             return false;
         }
-        elseif (in_array($mimeType, ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])) {
-            // Pour les documents Word
-            $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/libreoffice/convert', [
+
+        try {
+            // Déterminer le type MIME
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($filePath);
+        
+            error_log("Génération de PDF à partir du fichier: $filePath (type: $mimeType)");
+            error_log("Chemin de sortie: $outputPath");
+        
+            // Traitement différent selon le type de fichier
+            if (strpos($mimeType, 'text/html') === 0) {
+                // Si c'est un fichier HTML, utiliser la conversion HTML
+                $htmlContent = file_get_contents($filePath);
+                $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/html', [
                 'headers' => [
                     'Content-Type' => 'multipart/form-data',
                 ],
                 'body' => [
                     'files' => fopen($filePath, 'r'),
                 ],
-            ]);
-        }
-        else {
-            // Fallback pour les autres types: essayer de les traiter comme du texte
-            $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/markdown', [
+                ]);
+            } elseif (strpos($mimeType, 'image/') === 0) {
+                // Pour les images
+                $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/image', [
                 'headers' => [
                     'Content-Type' => 'multipart/form-data',
                 ],
                 'body' => [
                     'files' => fopen($filePath, 'r'),
                 ],
-            ]);
-        }
-        
-        // Traiter la réponse
-        if (isset($response)) {
-            if ($response->getStatusCode() !== 200) {
-                error_log("Erreur Gotenberg: " . $response->getStatusCode());
+                ]);
+            } elseif ($mimeType === 'application/pdf') {
+                // Si c'est déjà un PDF, le copier simplement
+                if (copy($filePath, $outputPath)) {
+                    return true;
+                }
                 return false;
+            } elseif (in_array($mimeType, ['application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])) {
+                // Pour les documents Word
+                $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/libreoffice/convert', [
+                'headers' => [
+                    'Content-Type' => 'multipart/form-data',
+                ],
+                'body' => [
+                    'files' => fopen($filePath, 'r'),
+                ],
+                ]);
+            } else {
+                // Fallback pour les autres types: essayer de les traiter comme du texte
+                $response = $this->client->request('POST', $this->gotenbergUrl . '/forms/chromium/convert/markdown', [
+                'headers' => [
+                    'Content-Type' => 'multipart/form-data',
+                ],
+                'body' => [
+                    'files' => fopen($filePath, 'r'),
+                ],
+                ]);
             }
-            
-            // Sauvegarder le fichier
-            $pdfContent = $response->getContent();
-            $bytesWritten = file_put_contents($outputPath, $pdfContent);
-            
-            if ($bytesWritten === false) {
-                error_log("Échec de l'écriture du fichier: $outputPath");
-                return false;
-            }
-            
-            error_log("PDF généré avec succès: $outputPath ($bytesWritten octets)");
-            return true;
-        }
         
-        return false;
-    } catch (\Exception $e) {
-        error_log("Exception lors de la génération du PDF: " . $e->getMessage());
-        error_log($e->getTraceAsString());
-        return false;
+            // Traiter la réponse
+            if (isset($response)) {
+                if ($response->getStatusCode() !== 200) {
+                    error_log("Erreur Gotenberg: " . $response->getStatusCode());
+                    return false;
+                }
+            
+                // Sauvegarder le fichier
+                $pdfContent = $response->getContent();
+                $bytesWritten = file_put_contents($outputPath, $pdfContent);
+            
+                if ($bytesWritten === false) {
+                    error_log("Échec de l'écriture du fichier: $outputPath");
+                    return false;
+                }
+            
+                error_log("PDF généré avec succès: $outputPath ($bytesWritten octets)");
+                return true;
+            }
+        
+            return false;
+        } catch (\Exception $e) {
+            error_log("Exception lors de la génération du PDF: " . $e->getMessage());
+            error_log($e->getTraceAsString());
+            return false;
+        }
     }
-}
     public function generatePdfFromHtml(string $htmlContent, ?UserInterface $user = null): Response
     {
         // Vérifier si l'utilisateur peut générer plus de PDF
         if ($user && !$this->canUserGeneratePdf($user)) {
-            return new Response("Limite quotidienne de génération de PDF atteinte. Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
+            return new Response("Limite quotidienne de génération 
+            de PDF atteinte. Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
         }
 
         // Création d'un fichier temporaire nommé `index.html`
@@ -250,7 +252,8 @@ public function generatePdfFromFile(string $filePath, string $outputPath, string
     {
         // Vérifier si l'utilisateur peut générer plus de PDF
         if ($user && !$this->canUserGeneratePdf($user)) {
-            return new Response("Limite quotidienne de génération de PDF atteinte. Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
+            return new Response("Limite quotidienne de génération de PDF atteinte. 
+            Veuillez réessayer demain ou mettre à jour votre abonnement.", 403);
         }
 
         try {

@@ -98,8 +98,9 @@ class HandlePdfQueueCommand extends Command
                 $this->pdfQueueService->markAsProcessing($queueItem);
 
                 // Generate a unique filename
-                $filename = sprintf('pdf_%s_%s.pdf', 
-                    $queueItem->getUser()->getId(), 
+                $filename = sprintf(
+                    'pdf_%s_%s.pdf',
+                    $queueItem->getUser()->getId(),
                     (new DateTimeImmutable())->format('YmdHis')
                 );
                 $filePath = $this->pdfDirectory . '/' . $filename;
