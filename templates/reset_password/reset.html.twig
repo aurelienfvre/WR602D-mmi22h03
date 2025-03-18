@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réinitialiser votre mot de passe - PDFPro{% endblock %}
+
+{% block body %}
+<div class="max-w-md mx-auto py-12">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-dark-900 mb-2">Créer un nouveau mot de passe</h1>
+        <p class="text-dark-500">Choisissez un nouveau mot de passe sécurisé pour votre compte.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-dark-100/10">
+        {{ form_start(resetForm, {'attr': {'class': 'space-y-6', 'x-data': '{ showPassword: false, confirmPassword: false, passwordStrength: 0, passwordMessage: "", checkPasswordStrength(password) { if (!password) { this.passwordStrength = 0; this.passwordMessage = ""; return; } if (password.length < 8) { this.passwordStrength = 1; this.passwordMessage = "Mot de passe trop court"; return; } let strength = 0; if (password.match(/[a-z]+/)) strength += 1; if (password.match(/[A-Z]+/)) strength += 1; if (password.match(/[0-9]+/)) strength += 1; if (password.match(/[^a-zA-Z0-9]+/)) strength += 1; this.passwordStrength = strength; if (strength < 2) this.passwordMessage = "Faible"; else if (strength < 4) this.passwordMessage = "Moyen"; else this.passwordMessage = "Fort"; } }'}}) }}
+            
+            <!-- First password field -->
+            <div>
+                <label for="reset_password_form_plainPassword_first" class="block text-sm font-medium text-dark-700 mb-1.5">Nouveau mot de passe</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    {{ form_widget(resetForm.plainPassword.first, {
+                        'attr': {
+                            'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-10 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
+                            'placeholder': '••••••••',
+                            'x-bind:type': 'showPassword ? "text" : "password"',
+                            '@input': 'checkPasswordStrength($event.target.value)'
+                        }
+                    }) }}
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button 
+                            type="button" 
+                            @click="showPassword = !showPassword" 
+                            class="text-dark-500 hover:text-dark-700 focus:outline-none"
+                        >
+                            <svg x-show="!showPassword" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                            <svg x-show="showPassword" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="display: none;">
+                                <path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.745-1.745a10.029 10.029 0 003.3-4.38 1.651 1.651 0 000-1.185A10.004 10.004 0 009.999 3a9.956 9.956 0 00-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 013.374 3.373l1.091 1.092a4 4 0 00-5.557-5.557z" />
+                                <path d="M10.748 13.93l2.523 2.523a9.987 9.987 0 01-3.27.547c-4.258 0-7.894-2.66-9.337-6.41a1.651 1.651 0 010-1.186A10.007 10.007 0 012.839 6.02L6.07 9.252a4 4 0 004.678 4.678z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Password strength indicator -->
+                <div class="mt-2">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex-1">
+                            <div class="h-2 flex rounded-full overflow-hidden bg-dark-100">
+                                <div 
+                                    class="transition-all duration-300 ease-in-out h-full" 
+                                    x-bind:class="{
+                                        'bg-red-500': passwordStrength === 1,
+                                        'bg-amber-500': passwordStrength === 2 || passwordStrength === 3,
+                                        'bg-green-500': passwordStrength === 4
+                                    }"
+                                    x-bind:style="'width: ' + (passwordStrength * 25) + '%'"
+                                ></div>
+                            </div>
+                        </div>
+                        <div class="ml-3 text-xs" x-text="passwordMessage" 
+                            x-bind:class="{
+                                'text-red-600': passwordStrength === 1,
+                                'text-amber-600': passwordStrength === 2 || passwordStrength === 3,
+                                'text-green-600': passwordStrength === 4
+                            }"
+                        ></div>
+                    </div>
+                    <p class="text-xs text-dark-400">Utilisez au moins 8 caractères avec une combinaison de lettres, chiffres et symboles.</p>
+                </div>
+                
+                {{ form_errors(resetForm.plainPassword.first) }}
+            </div>
+            
+            <!-- Second password field (confirmation) -->
+            <div>
+                <label for="reset_password_form_plainPassword_second" class="block text-sm font-medium text-dark-700 mb-1.5">Confirmer le mot de passe</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    {{ form_widget(resetForm.plainPassword.second, {
+                        'attr': {
+                            'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-10 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
+                            'placeholder': '••••••••',
+                            'x-bind:type': 'confirmPassword ? "text" : "password"'
+                        }
+                    }) }}
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button 
+                            type="button" 
+                            @click="confirmPassword = !confirmPassword" 
+                            class="text-dark-500 hover:text-dark-700 focus:outline-none"
+                        >
+                            <svg x-show="!confirmPassword" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                            <svg x-show="confirmPassword" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="display: none;">
+                                <path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.745-1.745a10.029 10.029 0 003.3-4.38 1.651 1.651 0 000-1.185A10.004 10.004 0 009.999 3a9.956 9.956 0 00-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 013.374 3.373l1.091 1.092a4 4 0 00-5.557-5.557z" />
+                                <path d="M10.748 13.93l2.523 2.523a9.987 9.987 0 01-3.27.547c-4.258 0-7.894-2.66-9.337-6.41a1.651 1.651 0 010-1.186A10.007 10.007 0 012.839 6.02L6.07 9.252a4 4 0 004.678 4.678z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {{ form_errors(resetForm.plainPassword.second) }}
+                {{ form_errors(resetForm.plainPassword) }}
+            </div>
+
+            <button type="submit" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all">
+                Réinitialiser le mot de passe
+            </button>
+        {{ form_end(resetForm) }}
+    </div>
+</div>
+{% endblock %}

@@ -50,6 +50,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToOne(inversedBy: 'users')]
     private ?Subscription $subscription = null;
 
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $resetTokenExpiresAt = null;
+
     public function __construct()
     {
         $this->files = new ArrayCollection();
@@ -194,5 +200,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->subscription = $subscription;
 
         return $this;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function setResetToken(?string $resetToken): static
+    {
+        $this->resetToken = $resetToken;
+
+        return $this;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function setResetTokenExpiresAt(?\DateTimeInterface $resetTokenExpiresAt): static
+    {
+        $this->resetTokenExpiresAt = $resetTokenExpiresAt;
+
+        return $this;
+    }
+
+    public function isResetTokenValid(): bool
+    {
+        if (!$this->getResetToken() || !$this->getResetTokenExpiresAt()) {
+            return false;
+        }
+
+        return $this->getResetTokenExpiresAt() > new \DateTime();
     }
 }

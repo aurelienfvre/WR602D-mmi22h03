@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lien expiré - PDFPro{% endblock %}
+
+{% block body %}
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white rounded-2xl p-8 shadow-sm border border-dark-100/10 text-center">
+        <svg class="h-16 w-16 text-red-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-1.72 6.97a.75.75 0 10-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 101.06 1.06L12 13.06l1.72 1.72a.75.75 0 101.06-1.06L13.06 12l1.72-1.72a.75.75 0 10-1.06-1.06L12 10.94l-1.72-1.72z" clip-rule="evenodd" />
+        </svg>
+        
+        <h2 class="text-2xl font-bold text-dark-900 mb-2">Lien de réinitialisation expiré</h2>
+        
+        <p class="text-dark-600 mb-6">
+            Le lien de réinitialisation de mot de passe que vous avez utilisé est expiré ou invalide.
+        </p>
+        
+        <div class="space-y-4">
+            <a href="{{ path('app_forgot_password_request') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all">
+                Demander un nouveau lien
+            </a>
+            
+            <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center w-full px-6 py-3 text-base font-medium rounded-xl bg-white border border-dark-200 text-dark-700 hover:bg-dark-50 transition-all">
+                Retour à la connexion
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
