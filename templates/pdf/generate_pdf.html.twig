@@ -2,6 +2,25 @@
 
 {% block title %}Générer un PDF{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .tox-tinymce {
+            border-radius: 0.75rem !important;
+            overflow: hidden;
+        }
+        
+        .preview-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background-color: white;
+            max-height: 600px;
+            overflow: auto;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 <div class="max-w-3xl mx-auto py-8">
     <div class="space-y-6">
@@ -14,8 +33,8 @@
         <!-- Form Card -->
         <div class="bg-white rounded-2xl p-8 shadow-sm border border-dark-100/10">
             <!-- Utilisez un seul x-data qui sera partagé pour tous les éléments -->
-            <div x-data="{ activeTab: 'url' }">
-                <!-- Tabs pour choisir entre URL et fichier -->
+            <div x-data="{ activeTab: 'url', editorContent: '', showPreview: false }">
+                <!-- Tabs pour choisir entre URL, fichier et éditeur -->
                 <div class="mb-6 border-b border-dark-200">
                     <div class="flex -mb-px">
                         <button 
@@ -30,145 +49,257 @@
                             class="px-4 py-2 font-medium text-sm focus:outline-none">
                             Télécharger un fichier
                         </button>
+                        <button 
+                            @click="activeTab = 'editor'" 
+                            :class="{'border-b-2 border-primary-600 text-primary-600': activeTab === 'editor', 'text-dark-500': activeTab !== 'editor'}"
+                            class="px-4 py-2 font-medium text-sm focus:outline-none">
+                            Éditeur WYSIWYG
+                        </button>
                     </div>
                 </div>
                 
-                {{ form_start(form, {'attr': {'class': 'space-y-6', 'data-turbo': 'false'}}) }}
-                    <!-- URL Section -->
-                    <div x-show="activeTab === 'url'" class="mb-6">
-                        <h2 class="text-lg font-semibold text-dark-900 mb-3">Entrez l'URL de la page web</h2>
-                        <div>
-                            {{ form_label(form.url, 'URL de la page', {'label_attr': {'class': 'block text-sm font-medium text-dark-700 mb-1.5'}}) }}
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
-                                    </svg>
+                <!-- Form pour URL et Fichier -->
+                <div x-show="activeTab === 'url' || activeTab === 'file'">
+                    {{ form_start(form, {'attr': {'class': 'space-y-6', 'data-turbo': 'false'}}) }}
+                        <!-- URL Section -->
+                        <div x-show="activeTab === 'url'" class="mb-6">
+                            <h2 class="text-lg font-semibold text-dark-900 mb-3">Entrez l'URL de la page web</h2>
+                            <div>
+                                {{ form_label(form.url, 'URL de la page', {'label_attr': {'class': 'block text-sm font-medium text-dark-700 mb-1.5'}}) }}
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    {{ form_widget(form.url, {'attr': {
+                                        'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
+                                        'placeholder': 'https://exemple.com',
+                                        '@focus': 'activeTab = "url"'
+                                    }}) }}
                                 </div>
-                                {{ form_widget(form.url, {'attr': {
-                                    'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
-                                    'placeholder': 'https://exemple.com',
-                                    '@focus': 'activeTab = "url"'
+                                <p class="text-xs text-dark-500 mt-1">Exemple: https://www.example.com/page</p>
+                            </div>
+                        </div>
+                        
+                        <!-- File Upload Section -->
+                        <div x-show="activeTab === 'file'" class="mb-6">
+                            <h2 class="text-lg font-semibold text-dark-900 mb-3">Téléchargez un fichier à convertir</h2>
+                            <div
+                                id="drop-zone" 
+                                class="border-2 border-dashed border-dark-200 bg-dark-50 rounded-xl p-8 text-center cursor-pointer transition-colors"
+                                @click="document.getElementById('{{ form.uploadedFile.vars.id }}').click()"
+                                @dragover.prevent="$el.classList.add('border-primary-500', 'bg-primary-50')"
+                                @dragleave.prevent="$el.classList.remove('border-primary-500', 'bg-primary-50')"
+                                @drop.prevent="handleFileDrop($event); activeTab = 'file'"
+                            >
+                                <div class="space-y-3">
+                                    <svg class="mx-auto h-12 w-12 text-dark-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    <div class="text-sm text-dark-600">
+                                        <span class="font-medium text-primary-600">Cliquez pour choisir</span> ou glissez-déposez
+                                    </div>
+                                    <p class="text-xs text-dark-400">
+                                        Formats supportés : HTML, TXT, JPG, PNG, PDF, DOC, DOCX
+                                    </p>
+                                </div>
+                                {{ form_widget(form.uploadedFile, {'attr': {
+                                    'class': 'hidden',
+                                    '@change': 'handleFileSelect($event); activeTab = "file"'
                                 }}) }}
                             </div>
-                            <p class="text-xs text-dark-500 mt-1">Exemple: https://www.example.com/page</p>
+                            {{ form_errors(form.uploadedFile, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
                         </div>
-                    </div>
-                    
-                    <!-- File Upload Section -->
-                    <div x-show="activeTab === 'file'" class="mb-6">
-                        <h2 class="text-lg font-semibold text-dark-900 mb-3">Téléchargez un fichier à convertir</h2>
-                        <div
-                            id="drop-zone" 
-                            class="border-2 border-dashed border-dark-200 bg-dark-50 rounded-xl p-8 text-center cursor-pointer transition-colors"
-                            @click="document.getElementById('{{ form.uploadedFile.vars.id }}').click()"
-                            @dragover.prevent="$el.classList.add('border-primary-500', 'bg-primary-50')"
-                            @dragleave.prevent="$el.classList.remove('border-primary-500', 'bg-primary-50')"
-                            @drop.prevent="handleFileDrop($event); activeTab = 'file'"
-                        >
-                            <div class="space-y-3">
-                                <svg class="mx-auto h-12 w-12 text-dark-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                                <div class="text-sm text-dark-600">
-                                    <span class="font-medium text-primary-600">Cliquez pour choisir</span> ou glissez-déposez
-                                </div>
-                                <p class="text-xs text-dark-400">
-                                    Formats supportés : HTML, TXT, JPG, PNG, PDF, DOC, DOCX
-                                </p>
-                            </div>
-                            {{ form_widget(form.uploadedFile, {'attr': {
-                                'class': 'hidden',
-                                '@change': 'handleFileSelect($event); activeTab = "file"'
-                            }}) }}
+
+                        <!-- Prévisualisation du fichier -->
+                        <div id="file-preview" class="hidden p-4 bg-dark-50 rounded-lg border border-dark-200 mb-4">
+                            <!-- Contenu dynamique via JavaScript -->
                         </div>
-                        {{ form_errors(form.uploadedFile, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
-                    </div>
 
-                    <!-- Prévisualisation du fichier -->
-                    <div id="file-preview" class="hidden p-4 bg-dark-50 rounded-lg border border-dark-200 mb-4">
-                        <!-- Contenu dynamique via JavaScript -->
-                    </div>
-
-                    <!-- Options de livraison du PDF -->
-                    <div class="bg-dark-50 rounded-xl p-5 border border-dark-100/20">
-                        <h3 class="text-lg font-medium text-dark-900 mb-3">Options de livraison</h3>
-                        
-                        {% if app.user %}
-                            <!-- Utilisateur connecté - checkbox pour envoyer par email -->
-                            <div class="flex items-center space-x-2">
-                                {{ form_widget(form.sendByEmail, {
-                                    'attr': {
-                                        'class': 'h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500',
-                                        'checked': 'checked'
-                                    }
-                                }) }}
-                                <label for="{{ form.sendByEmail.vars.id }}" class="text-sm text-dark-700">
-                                    Envoyer à mon adresse email ({{ app.user.email }})
-                                </label>
-                            </div>
-                            <!-- Champ email masqué avec valeur préremplie -->
-                            <div style="display: none;">
-                                {{ form_widget(form.emailAddress, {
-                                    'attr': {
-                                        'value': app.user.email
-                                    }
-                                }) }}
-                            </div>
-                        {% else %}
-                            <!-- Utilisateur non connecté - checkbox avec affichage conditionnel du champ email -->
-                            <div x-data="{ showEmailField: true }">
-                                <div class="flex items-center space-x-2 mb-3">
+                        <!-- Options de livraison du PDF -->
+                        <div class="bg-dark-50 rounded-xl p-5 border border-dark-100/20">
+                            <h3 class="text-lg font-medium text-dark-900 mb-3">Options de livraison</h3>
+                            
+                            {% if app.user %}
+                                <!-- Utilisateur connecté - checkbox pour envoyer par email -->
+                                <div class="flex items-center space-x-2">
                                     {{ form_widget(form.sendByEmail, {
                                         'attr': {
                                             'class': 'h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500',
-                                            '@change': 'showEmailField = $event.target.checked',
                                             'checked': 'checked'
                                         }
                                     }) }}
                                     <label for="{{ form.sendByEmail.vars.id }}" class="text-sm text-dark-700">
-                                        Recevoir le PDF par email
+                                        Envoyer à mon adresse email ({{ app.user.email }})
                                     </label>
                                 </div>
-                                
-                                <div x-show="showEmailField" class="mt-3">
-                                    <label for="{{ form.emailAddress.vars.id }}" class="block text-sm font-medium text-dark-700 mb-1.5">
-                                        Adresse email
-                                    </label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                            <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                                            </svg>
-                                        </div>
-                                        {{ form_widget(form.emailAddress, {
+                                <!-- Champ email masqué avec valeur préremplie -->
+                                <div style="display: none;">
+                                    {{ form_widget(form.emailAddress, {
+                                        'attr': {
+                                            'value': app.user.email
+                                        }
+                                    }) }}
+                                </div>
+                            {% else %}
+                                <!-- Utilisateur non connecté - checkbox avec affichage conditionnel du champ email -->
+                                <div x-data="{ showEmailField: true }">
+                                    <div class="flex items-center space-x-2 mb-3">
+                                        {{ form_widget(form.sendByEmail, {
                                             'attr': {
-                                                'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
-                                                'placeholder': 'votre@email.com',
-                                                'x-bind:required': 'showEmailField'
+                                                'class': 'h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500',
+                                                '@change': 'showEmailField = $event.target.checked',
+                                                'checked': 'checked'
                                             }
                                         }) }}
+                                        <label for="{{ form.sendByEmail.vars.id }}" class="text-sm text-dark-700">
+                                            Recevoir le PDF par email
+                                        </label>
                                     </div>
-                                    {{ form_errors(form.emailAddress, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
+                                    
+                                    <div x-show="showEmailField" class="mt-3">
+                                        <label for="{{ form.emailAddress.vars.id }}" class="block text-sm font-medium text-dark-700 mb-1.5">
+                                            Adresse email
+                                        </label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                                <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                                                </svg>
+                                            </div>
+                                            {{ form_widget(form.emailAddress, {
+                                                'attr': {
+                                                    'class': 'block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm',
+                                                    'placeholder': 'votre@email.com',
+                                                    'x-bind:required': 'showEmailField'
+                                                }
+                                            }) }}
+                                        </div>
+                                        {{ form_errors(form.emailAddress, {'attr': {'class': 'mt-1 text-sm text-red-600'}}) }}
+                                    </div>
                                 </div>
+                            {% endif %}
+                            
+                            <div class="mt-3 text-sm text-dark-500 flex items-start gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                                </svg>
+                                <span>Les fichiers téléchargés sont convertis immédiatement. Les URLs sont traitées toutes les 30 minutes.</span>
                             </div>
-                        {% endif %}
-                        
-                        <div class="mt-3 text-sm text-dark-500 flex items-start gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
-                            </svg>
-                            <span>Les fichiers téléchargés sont convertis immédiatement. Les URLs sont traitées toutes les 30 minutes.</span>
                         </div>
-                    </div>
 
-                    <div>
-                        {{ form_widget(form.submit, {'attr': {
-                            'class': 'inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all'
-                        }}) }}
+                        <div>
+                            {{ form_widget(form.submit, {'attr': {
+                                'class': 'inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all'
+                            }}) }}
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+                
+                <!-- Section Éditeur WYSIWYG -->
+                <!-- Section Éditeur WYSIWYG -->
+<div x-show="activeTab === 'editor'" class="space-y-6">
+    <div>
+        <h2 class="text-lg font-semibold text-dark-900 mb-3">Créez votre document</h2>
+        <div>
+            <textarea id="wysiwyg-editor" style="height: 400px;"></textarea>
+        </div>
+    </div>
+    
+    <!-- Options de livraison pour WYSIWYG -->
+    <div class="bg-dark-50 rounded-xl p-5 border border-dark-100/20">
+        <h3 class="text-lg font-medium text-dark-900 mb-3">Options de livraison</h3>
+        
+        {% if app.user %}
+            <!-- Utilisateur connecté - checkbox pour envoyer par email -->
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="wysiwyg-send-email" class="h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500" checked>
+                <label for="wysiwyg-send-email" class="text-sm text-dark-700">
+                    Envoyer à mon adresse email ({{ app.user.email }})
+                </label>
+            </div>
+            <input type="hidden" id="wysiwyg-email-value" value="{{ app.user.email }}">
+        {% else %}
+            <!-- Utilisateur non connecté - checkbox avec affichage conditionnel du champ email -->
+            <div x-data="{ showWysiwygEmailField: true }">
+                <div class="flex items-center space-x-2 mb-3">
+                    <input type="checkbox" id="wysiwyg-send-email" class="h-4 w-4 text-primary-600 border-dark-300 rounded focus:ring-primary-500" 
+                           @change="showWysiwygEmailField = $event.target.checked" checked>
+                    <label for="wysiwyg-send-email" class="text-sm text-dark-700">
+                        Recevoir le PDF par email
+                    </label>
+                </div>
+                
+                <div x-show="showWysiwygEmailField" class="mt-3">
+                    <label for="wysiwyg-email-value" class="block text-sm font-medium text-dark-700 mb-1.5">
+                        Adresse email
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-dark-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                        </div>
+                        <input type="email" id="wysiwyg-email-value" 
+                               class="block w-full rounded-xl border border-dark-200 py-3 pl-11 pr-3 text-dark-900 placeholder:text-dark-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm shadow-sm" 
+                               placeholder="votre@email.com" x-bind:required="showWysiwygEmailField">
                     </div>
-                {{ form_end(form) }}
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="mt-3 text-sm text-dark-500 flex items-start gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+            </svg>
+            <span>Les documents créés sont convertis en PDF et traités toutes les 30 minutes.</span>
+        </div>
+    </div>
+    
+    <!-- Actions pour l'éditeur -->
+    <div class="flex space-x-3 justify-between items-center mt-4">
+        <button 
+            @click="showPreview = !showPreview; if(showPreview) { editorContent = tinymce.get('wysiwyg-editor').getContent(); }"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg border border-dark-200 text-dark-700 hover:bg-dark-50 transition-all"
+        >
+            <svg x-show="!showPreview" class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+            </svg>
+            <svg x-show="showPreview" class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" style="display: none;">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+            </svg>
+            <span x-text="showPreview ? 'Modifier' : 'Aperçu'"></span>
+        </button>
+        
+        <form id="wysiwyg-form" action="{{ path('wysiwyg_generate_pdf') }}" method="post" class="inline">
+            <input type="hidden" name="html_content" id="html-content-input">
+            <input type="hidden" name="email_to" id="email-to-input">
+            <button 
+                type="button"
+                @click="
+                    document.getElementById('html-content-input').value = tinymce.get('wysiwyg-editor').getContent(); 
+                    if(document.getElementById('wysiwyg-send-email').checked) {
+                        document.getElementById('email-to-input').value = document.getElementById('wysiwyg-email-value').value;
+                    }
+                    document.getElementById('wysiwyg-form').submit();
+                "
+                class="inline-flex items-center justify-center px-6 py-3 text-sm font-medium rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-100 transition-all"
+            >
+                <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                Générer le PDF
+            </button>
+        </form>
+    </div>
+    
+    <!-- Prévisualisation du contenu -->
+    <div x-show="showPreview" class="preview-box mt-4" x-html="editorContent" style="display: none;"></div>
+</div>
             </div>
         </div>
         
@@ -262,9 +393,23 @@
 
 {% block javascripts %}
 {{ parent() }}
+<!-- TinyMCE -->
+<script src="https://cdn.tiny.cloud/1/on7q2vc7whu9mfzqltjbioqzhbfraodahce6v5yzgaf914xr/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Variables globales
+    // Initialisation de TinyMCE
+    if (document.getElementById('wysiwyg-editor')) {
+        tinymce.init({
+            selector: '#wysiwyg-editor',
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+            language: 'fr_FR',
+            height: 500,
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }',
+        });
+    }
+    
+    // Variables globales pour le téléchargement de fichiers
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.querySelector('input[type="file"]');
     const filePreview = document.getElementById('file-preview');
