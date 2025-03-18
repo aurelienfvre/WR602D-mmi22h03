@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            margin: 20mm;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #333;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+        p {
+            margin-bottom: 0.8em;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        @page {
+            margin: 15mm;
+        }
+    </style>
+</head>
+<body>
+    {{ content|raw }}
+</body>
+</html>
