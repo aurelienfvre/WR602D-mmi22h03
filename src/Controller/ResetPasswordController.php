@@ -80,7 +80,7 @@ class ResetPasswordController extends AbstractController
 
         if (!$user || !$user->isResetTokenValid()) {
             $this->removeTokenFromSession();
-            
+
             return $this->render('reset_password/expired.html.twig');
         }
 
@@ -126,11 +126,11 @@ class ResetPasswordController extends AbstractController
 
         // Generate a unique reset token
         $resetToken = $this->tokenGenerator->generateToken();
-        
+
         $user->setResetToken($resetToken);
         // Set expiration time to 1 hour from now
         $user->setResetTokenExpiresAt(new \DateTime('+1 hour'));
-        
+
         $this->entityManager->flush();
 
         // Store the token in session for the route that will check if the email was really sent
