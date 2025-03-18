@@ -10,7 +10,7 @@ class PdfGenerationQueue
 {
     public const SOURCE_TYPE_URL = 'url';
     public const SOURCE_TYPE_FILE = 'file';
-    
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -21,7 +21,7 @@ class PdfGenerationQueue
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $sourceFilePath = null;
-    
+
     #[ORM\Column(length: 50)]
     private ?string $sourceType = null;
 
@@ -39,7 +39,7 @@ class PdfGenerationQueue
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $filePath = null;
-    
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $originalFilename = null;
 

@@ -63,7 +63,7 @@ class PdfQueueService
         $queueItem->setStatus('pending');
         $queueItem->setCreatedAt(new \DateTimeImmutable());
         $queueItem->setUser($user);
-        
+
         if ($emailTo) {
             $queueItem->setEmailTo($emailTo);
         }
@@ -87,7 +87,7 @@ class PdfQueueService
         if (!$this->canUserGeneratePdf($user)) {
             throw new \Exception("Limite d'abonnement atteinte. Impossible de générer plus de PDF.");
         }
-        
+
         $queueItem = new PdfGenerationQueue();
         $queueItem->setSourceFilePath($filePath);
         $queueItem->setOriginalFilename($originalFilename);
